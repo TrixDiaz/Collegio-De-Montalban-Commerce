@@ -7,7 +7,10 @@ import {
   deleteProduct,
   upload,
 } from "../controllers/product-controller.js";
-import {authenticateToken} from "../middlewares/auth-middleware.js";
+import {
+  authenticateToken,
+  authenticateAdmin,
+} from "../middlewares/auth-middleware.js";
 
 const productRouter = Router();
 
@@ -17,10 +20,10 @@ productRouter.get("/", getProducts);
 // Get product by ID
 productRouter.get("/:id", getProductById);
 
-// Create product with thumbnail and multiple images
+// Create product with thumbnail and multiple images (Admin only)
 productRouter.post(
   "/",
-  authenticateToken,
+  authenticateAdmin,
   upload.fields([
     {name: "thumbnail", maxCount: 1},
     {name: "images", maxCount: 10},
@@ -28,10 +31,10 @@ productRouter.post(
   createProduct
 );
 
-// Update product with thumbnail and multiple images
+// Update product with thumbnail and multiple images (Admin only)
 productRouter.put(
   "/:id",
-  authenticateToken,
+  authenticateAdmin,
   upload.fields([
     {name: "thumbnail", maxCount: 1},
     {name: "images", maxCount: 10},
@@ -39,7 +42,7 @@ productRouter.put(
   updateProduct
 );
 
-// Delete product
-productRouter.delete("/:id", authenticateToken, deleteProduct);
+// Delete product (Admin only)
+productRouter.delete("/:id", authenticateAdmin, deleteProduct);
 
 export {productRouter};

@@ -28,7 +28,15 @@ import {
     Trash2,
     Folder
 } from 'lucide-react';
-import { useState } from 'react';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
+import { useState, useEffect } from 'react';
 import { Loading } from '@/components/ui/loading';
 import { useCategories, useCategoryMutations } from '@/hooks/use-products';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -48,12 +56,21 @@ export const Categories = () => {
     const [ editingCategory, setEditingCategory ] = useState<Category | null>(null);
     const [ deleteDialogOpen, setDeleteDialogOpen ] = useState(false);
     const [ categoryToDelete, setCategoryToDelete ] = useState<Category | null>(null);
+    const [ page, setPage ] = useState(1);
+    const [ totalPages, setTotalPages ] = useState(1);
 
     // Fetch categories with optimized caching
-    const { data: categoriesData, isLoading } = useCategories(1, 100);
+    const { data: categoriesData, isLoading } = useCategories(page, 10);
 
     // Use optimized category mutations
     const { createCategory, updateCategory, deleteCategory } = useCategoryMutations();
+
+    // Update total pages when data changes
+    useEffect(() => {
+        if (categoriesData) {
+            setTotalPages(categoriesData.totalPages || 1);
+        }
+    }, [ categoriesData ]);
 
     const handleCreateCategory = (data: { name: string }) => {
         createCategory.mutate(data, {
@@ -89,7 +106,7 @@ export const Categories = () => {
         setIsEditDialogOpen(true);
     };
 
-    const filteredCategories = (categoriesData || []).filter((category: Category) =>
+    const filteredCategories = (categoriesData?.categories || []).filter((category: Category) =>
         category.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -209,6 +226,42 @@ export const Categories = () => {
                         </Table>
                     </CardContent>
                 </Card>
+
+                {/* Pagination */}
+                <div className="flex items-center justify-between mt-6">
+                    <div className="text-sm text-muted-foreground">
+                        Page {page} of {Math.max(totalPages, 1)}
+                    </div>
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    onClick={() => setPage(Math.max(1, page - 1))}
+                                    className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                />
+                            </PaginationItem>
+
+                            {Array.from({ length: Math.max(totalPages, 1) }, (_, i) => i + 1).map((pageNum) => (
+                                <PaginationItem key={pageNum}>
+                                    <PaginationLink
+                                        onClick={() => setPage(pageNum)}
+                                        isActive={page === pageNum}
+                                        className="cursor-pointer"
+                                    >
+                                        {pageNum}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            ))}
+
+                            <PaginationItem>
+                                <PaginationNext
+                                    onClick={() => setPage(Math.min(totalPages, page + 1))}
+                                    className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                </div>
 
                 <CategoryForm
                     isOpen={isEditDialogOpen}

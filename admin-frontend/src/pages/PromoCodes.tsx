@@ -30,6 +30,14 @@ import {
   Copy,
   Calendar
 } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { useEffect, useState } from 'react';
 import { apiService } from '@/services/api';
 import { toast } from 'sonner';
@@ -58,8 +66,8 @@ export const PromoCodes = () => {
   const [ isCreateDialogOpen, setIsCreateDialogOpen ] = useState(false);
   const [ isEditDialogOpen, setIsEditDialogOpen ] = useState(false);
   const [ selectedPromo, setSelectedPromo ] = useState<PromoCode | null>(null);
-  const [ page, _setPage ] = useState(1);
-  const [ _totalPages, setTotalPages ] = useState(1);
+  const [ page, setPage ] = useState(1);
+  const [ totalPages, setTotalPages ] = useState(1);
   const [ deleteDialogOpen, setDeleteDialogOpen ] = useState(false);
   const [ promoToDelete, setPromoToDelete ] = useState<PromoCode | null>(null);
 
@@ -296,6 +304,42 @@ export const PromoCodes = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between mt-6">
+          <div className="text-sm text-muted-foreground">
+            Page {page} of {Math.max(totalPages, 1)}
+          </div>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+
+              {Array.from({ length: Math.max(totalPages, 1) }, (_, i) => i + 1).map((pageNum) => (
+                <PaginationItem key={pageNum}>
+                  <PaginationLink
+                    onClick={() => setPage(pageNum)}
+                    isActive={page === pageNum}
+                    className="cursor-pointer"
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
 
         <PromoForm
           isOpen={isEditDialogOpen}

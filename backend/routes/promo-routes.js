@@ -1,4 +1,4 @@
-import { Router } from "express";
+import {Router} from "express";
 import {
   getPromoCodes,
   getPromoCodeById,
@@ -9,7 +9,10 @@ import {
   validatePromoCode,
   incrementPromoCodeUsage,
 } from "../controllers/promo-controller.js";
-import { authenticateToken } from "../middlewares/auth-middleware.js";
+import {
+  authenticateToken,
+  authenticateAdmin,
+} from "../middlewares/auth-middleware.js";
 
 const promoRouter = Router();
 
@@ -17,15 +20,12 @@ const promoRouter = Router();
 promoRouter.post("/validate", validatePromoCode);
 promoRouter.post("/increment", incrementPromoCodeUsage);
 
-// All other routes require authentication
-promoRouter.use(authenticateToken);
-
-// Promo code routes
-promoRouter.get("/", getPromoCodes);
+// Promo code routes (Admin only for management)
+promoRouter.get("/", authenticateAdmin, getPromoCodes);
 promoRouter.get("/active", getActivePromoCodes);
-promoRouter.get("/:id", getPromoCodeById);
-promoRouter.post("/", createPromoCode);
-promoRouter.put("/:id", updatePromoCode);
-promoRouter.delete("/:id", deletePromoCode);
+promoRouter.get("/:id", authenticateAdmin, getPromoCodeById);
+promoRouter.post("/", authenticateAdmin, createPromoCode);
+promoRouter.put("/:id", authenticateAdmin, updatePromoCode);
+promoRouter.delete("/:id", authenticateAdmin, deletePromoCode);
 
 export default promoRouter;

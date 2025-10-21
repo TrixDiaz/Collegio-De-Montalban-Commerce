@@ -6,7 +6,7 @@ import {
   updateBrand,
   deleteBrand,
 } from "../controllers/brand-controller.js";
-import {authenticateToken} from "../middlewares/auth-middleware.js";
+import {authenticateAdmin} from "../middlewares/auth-middleware.js";
 
 const brandRouter = Router();
 
@@ -16,13 +16,13 @@ brandRouter.get("/", getBrands);
 // Get brand by ID
 brandRouter.get("/:id", getBrandById);
 
-// Create brand
-brandRouter.post("/", authenticateToken, createBrand);
+// Create brand (Admin only)
+brandRouter.post("/", authenticateAdmin, createBrand);
 
-// Update brand
-brandRouter.put("/:id", authenticateToken, updateBrand);
+// Update brand (Admin only)
+brandRouter.put("/:id", authenticateAdmin, updateBrand);
 
-// Delete brand
-brandRouter.delete("/:id", authenticateToken, deleteBrand);
+// Delete brand (Admin only)
+brandRouter.delete("/:id", authenticateAdmin, deleteBrand);
 
 export {brandRouter};

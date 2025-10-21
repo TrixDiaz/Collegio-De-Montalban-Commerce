@@ -6,7 +6,7 @@ import {
   updateCategory,
   deleteCategory,
 } from "../controllers/category-controller.js";
-import {authenticateToken} from "../middlewares/auth-middleware.js";
+import {authenticateAdmin} from "../middlewares/auth-middleware.js";
 
 const categoryRouter = Router();
 
@@ -16,13 +16,13 @@ categoryRouter.get("/", getCategories);
 // Get category by ID
 categoryRouter.get("/:id", getCategoryById);
 
-// Create category
-categoryRouter.post("/", authenticateToken, createCategory);
+// Create category (Admin only)
+categoryRouter.post("/", authenticateAdmin, createCategory);
 
-// Update category
-categoryRouter.put("/:id", authenticateToken, updateCategory);
+// Update category (Admin only)
+categoryRouter.put("/:id", authenticateAdmin, updateCategory);
 
-// Delete category
-categoryRouter.delete("/:id", authenticateToken, deleteCategory);
+// Delete category (Admin only)
+categoryRouter.delete("/:id", authenticateAdmin, deleteCategory);
 
 export {categoryRouter};

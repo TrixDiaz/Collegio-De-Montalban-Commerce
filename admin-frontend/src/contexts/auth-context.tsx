@@ -41,7 +41,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (storedUser && storedTokens) {
             try {
-                setUser(JSON.parse(storedUser));
+                const userData = JSON.parse(storedUser);
+                // Check if user has admin role
+                if (userData.role === 'admin') {
+                    setUser(userData);
+                } else {
+                    console.warn('User does not have admin role, logging out');
+                    localStorage.removeItem('admin_user');
+                    localStorage.removeItem('admin_tokens');
+                }
             } catch (error) {
                 console.error('Error parsing stored user data:', error);
                 localStorage.removeItem('admin_user');
@@ -52,6 +60,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     const login = (userData: User, tokens?: { accessToken: string; refreshToken: string }) => {
+        // Check if user has admin role before allowing login
+        if (userData.role !== 'admin') {
+            throw new Error('Access denied. Admin role required.');
+        }
+
         setUser(userData);
         localStorage.setItem('admin_user', JSON.stringify(userData));
 

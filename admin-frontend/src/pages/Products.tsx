@@ -29,6 +29,14 @@ import {
   Trash2,
   Package
 } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Loading } from '@/components/ui/loading';
 import { useProducts, useBrands, useCategories, useProductMutations } from '@/hooks/use-products';
@@ -68,10 +76,12 @@ interface Product {
 export const Products = () => {
   const [ products, setProducts ] = useState<Product[]>([]);
   const [ searchTerm, setSearchTerm ] = useState('');
+  const [ debouncedSearchTerm, setDebouncedSearchTerm ] = useState('');
   const [ isCreateDialogOpen, setIsCreateDialogOpen ] = useState(false);
   const [ isEditDialogOpen, setIsEditDialogOpen ] = useState(false);
   const [ selectedProduct, setSelectedProduct ] = useState<Product | null>(null);
-  const [ page ] = useState(1);
+  const [ page, setPage ] = useState(1);
+  const [ totalPages, setTotalPages ] = useState(1);
   const [ selectedFiles, setSelectedFiles ] = useState<File[]>([]);
   const [ selectedThumbnail, setSelectedThumbnail ] = useState<File | null>(null);
   const [ previewImages, setPreviewImages ] = useState<string[]>([]);
@@ -111,16 +121,29 @@ export const Products = () => {
   const { data: categoriesData } = useCategories(1, 100);
 
   // Fetch products with optimized caching
-  const { data: productsData, isLoading: productsLoading } = useProducts(page, 10, searchTerm);
+  const { data: productsData, isLoading: productsLoading } = useProducts(page, 10, debouncedSearchTerm);
 
   // Use optimized product mutations
   const { createProduct, updateProduct, deleteProduct } = useProductMutations();
 
   useEffect(() => {
     if (productsData) {
+      console.log('Products data structure:', productsData);
+      console.log('Products array:', productsData.products);
+      console.log('Total pages:', productsData.totalPages);
       setProducts(productsData.products || []);
+      setTotalPages(productsData.totalPages || 1);
     }
   }, [ productsData ]);
+
+  // Debounce search term with 3-second delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [ searchTerm ]);
 
 
   // Clean up object URLs on component unmount
@@ -260,8 +283,8 @@ export const Products = () => {
   };
 
   const filteredProducts = (products || []).filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    product.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    product.category?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
 
   if (productsLoading) {
@@ -448,6 +471,42 @@ export const Products = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between mt-6">
+          <div className="text-sm text-muted-foreground">
+            Page {page} of {Math.max(totalPages, 1)}
+          </div>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+
+              {Array.from({ length: Math.max(totalPages, 1) }, (_, i) => i + 1).map((pageNum) => (
+                <PaginationItem key={pageNum}>
+                  <PaginationLink
+                    onClick={() => setPage(pageNum)}
+                    isActive={page === pageNum}
+                    className="cursor-pointer"
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
 
         <ProductForm
           isOpen={isEditDialogOpen}

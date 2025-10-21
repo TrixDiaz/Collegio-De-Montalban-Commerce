@@ -11,12 +11,12 @@ import {
   getOrders,
   updateOrderStatus,
 } from "../controllers/admin-controller.js";
-import {authenticateToken} from "../middlewares/auth-middleware.js";
+import {authenticateAdmin} from "../middlewares/auth-middleware.js";
 
 const router = express.Router();
 
-// Apply authentication middleware to all admin routes
-router.use(authenticateToken);
+// Apply admin authentication middleware to all admin routes
+router.use(authenticateAdmin);
 
 // User management routes
 router.get("/users", getUsers);

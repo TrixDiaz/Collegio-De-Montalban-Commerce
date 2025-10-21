@@ -28,7 +28,15 @@ import {
     Trash2,
     Tag,
 } from 'lucide-react';
-import { useState } from 'react';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
+import { useState, useEffect } from 'react';
 import { Loading } from '@/components/ui/loading';
 import { useBrands, useBrandMutations } from '@/hooks/use-products';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -48,14 +56,23 @@ export const Brands = () => {
     const [ editingBrand, setEditingBrand ] = useState<Brand | null>(null);
     const [ deleteDialogOpen, setDeleteDialogOpen ] = useState(false);
     const [ brandToDelete, setBrandToDelete ] = useState<Brand | null>(null);
+    const [ page, setPage ] = useState(1);
+    const [ totalPages, setTotalPages ] = useState(1);
 
 
 
     // Fetch brands with optimized caching
-    const { data: brandsData, isLoading } = useBrands(1, 100);
+    const { data: brandsData, isLoading } = useBrands(page, 10);
 
     // Use optimized brand mutations
     const { createBrand, updateBrand, deleteBrand } = useBrandMutations();
+
+    // Update total pages when data changes
+    useEffect(() => {
+        if (brandsData) {
+            setTotalPages(brandsData.totalPages || 1);
+        }
+    }, [ brandsData ]);
 
     const handleCreateBrand = (data: { name: string }) => {
         createBrand.mutate(data, {
@@ -91,7 +108,7 @@ export const Brands = () => {
         setIsEditDialogOpen(true);
     };
 
-    const filteredBrands = (brandsData || []).filter((brand: Brand) =>
+    const filteredBrands = (brandsData?.brands || []).filter((brand: Brand) =>
         brand.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -211,6 +228,42 @@ export const Brands = () => {
                         </Table>
                     </CardContent>
                 </Card>
+
+                {/* Pagination */}
+                <div className="flex items-center justify-between mt-6">
+                    <div className="text-sm text-muted-foreground">
+                        Page {page} of {Math.max(totalPages, 1)}
+                    </div>
+                    <Pagination>
+                        <PaginationContent>
+                            <PaginationItem>
+                                <PaginationPrevious
+                                    onClick={() => setPage(Math.max(1, page - 1))}
+                                    className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                />
+                            </PaginationItem>
+
+                            {Array.from({ length: Math.max(totalPages, 1) }, (_, i) => i + 1).map((pageNum) => (
+                                <PaginationItem key={pageNum}>
+                                    <PaginationLink
+                                        onClick={() => setPage(pageNum)}
+                                        isActive={page === pageNum}
+                                        className="cursor-pointer"
+                                    >
+                                        {pageNum}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            ))}
+
+                            <PaginationItem>
+                                <PaginationNext
+                                    onClick={() => setPage(Math.min(totalPages, page + 1))}
+                                    className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                />
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                </div>
 
                 <BrandForm
                     isOpen={isEditDialogOpen}

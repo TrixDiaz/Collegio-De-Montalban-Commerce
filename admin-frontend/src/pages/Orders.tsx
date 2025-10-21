@@ -38,6 +38,14 @@ import {
   Package,
   Calendar
 } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { useEffect, useState, useCallback } from 'react';
 import { apiService } from '@/services/api';
 import { toast } from 'sonner';
@@ -81,19 +89,22 @@ export const Orders = () => {
   const [ statusFilter, setStatusFilter ] = useState<string>('all');
   const [ selectedOrder, setSelectedOrder ] = useState<Order | null>(null);
   const [ isDialogOpen, setIsDialogOpen ] = useState(false);
+  const [ page, setPage ] = useState(1);
+  const [ totalPages, setTotalPages ] = useState(1);
 
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiService.getOrders(1, 100);
+      const response = await apiService.getOrders(page, 10);
       setOrders(response.data.data.orders || []);
+      setTotalPages(response.data.data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast.error('Failed to fetch orders');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [ page ]);
 
   useEffect(() => {
     fetchOrders();
@@ -308,6 +319,42 @@ export const Orders = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between mt-6">
+          <div className="text-sm text-muted-foreground">
+            Page {page} of {Math.max(totalPages, 1)}
+          </div>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  className={page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+
+              {Array.from({ length: Math.max(totalPages, 1) }, (_, i) => i + 1).map((pageNum) => (
+                <PaginationItem key={pageNum}>
+                  <PaginationLink
+                    onClick={() => setPage(pageNum)}
+                    isActive={page === pageNum}
+                    className="cursor-pointer"
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  className={page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
 
         {/* Order Details Modal */}
         {selectedOrder && (

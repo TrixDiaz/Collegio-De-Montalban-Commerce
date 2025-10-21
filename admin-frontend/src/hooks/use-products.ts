@@ -33,7 +33,12 @@ export const useProducts = (page = 1, limit = 10, search?: string, category?: st
         queryKey: productKeys.list({ page, limit, search, category, brand }),
         queryFn: async () => {
             const response = await apiService.getProducts(page, limit, search, category, brand);
-            return response.data.data;
+            const data = response.data.data;
+            return {
+                products: data.products || [],
+                totalPages: data.pagination?.totalPages || 1,
+                pagination: data.pagination || {}
+            };
         },
         staleTime: 5 * 60 * 1000, // 5 minutes
         gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
@@ -43,12 +48,17 @@ export const useProducts = (page = 1, limit = 10, search?: string, category?: st
 };
 
 // Custom hook for brands with optimized caching
-export const useBrands = (page = 1, limit = 100, search?: string) => {
+export const useBrands = (page = 1, limit = 10, search?: string) => {
     return useQuery({
         queryKey: brandKeys.list({ page, limit, search }),
         queryFn: async () => {
             const response = await apiService.getBrands(page, limit, search);
-            return response.data.data.brands || [];
+            const data = response.data.data;
+            return {
+                brands: data.brands || [],
+                totalPages: data.pagination?.totalPages || 1,
+                pagination: data.pagination || {}
+            };
         },
         staleTime: 10 * 60 * 1000, // 10 minutes - brands change less frequently
         gcTime: 15 * 60 * 1000, // 15 minutes
@@ -57,12 +67,17 @@ export const useBrands = (page = 1, limit = 100, search?: string) => {
 };
 
 // Custom hook for categories with optimized caching
-export const useCategories = (page = 1, limit = 100, search?: string) => {
+export const useCategories = (page = 1, limit = 10, search?: string) => {
     return useQuery({
         queryKey: categoryKeys.list({ page, limit, search }),
         queryFn: async () => {
             const response = await apiService.getCategories(page, limit, search);
-            return response.data.data.categories || [];
+            const data = response.data.data;
+            return {
+                categories: data.categories || [],
+                totalPages: data.pagination?.totalPages || 1,
+                pagination: data.pagination || {}
+            };
         },
         staleTime: 10 * 60 * 1000, // 10 minutes - categories change less frequently
         gcTime: 15 * 60 * 1000, // 15 minutes
