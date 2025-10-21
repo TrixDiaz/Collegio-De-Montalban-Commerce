@@ -61,13 +61,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
                     const cleanItem = {
                         id: item.id,
                         name: item.name,
-                        price: typeof item.price === 'number' ? item.price : 0,
-                        discountPrice: typeof item.discountPrice === 'number' ? item.discountPrice : undefined,
+                        price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
+                        discountPrice: typeof item.discountPrice === 'number' ? item.discountPrice : (item.discountPrice ? parseFloat(item.discountPrice) : undefined),
                         quantity: typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1,
                         thumbnail: item.thumbnail || '',
                         brand: item.brand || 'Unknown',
                         category: item.category || 'Unknown',
-                        stock: typeof item.stock === 'number' ? item.stock : 1,
+                        stock: typeof item.stock === 'number' ? item.stock : (parseInt(item.stock) || 1),
                     };
 
                     // Update the item in the array

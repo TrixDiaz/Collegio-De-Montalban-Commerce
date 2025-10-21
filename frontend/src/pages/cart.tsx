@@ -162,20 +162,37 @@ const Cart = () => {
         console.log('Cart items:', items);
         console.log('Cart items length:', items.length);
 
+        // Log each item's properties for debugging
+        items.forEach((item, index) => {
+            console.log(`Item ${index}:`, {
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                thumbnail: item.thumbnail,
+                brand: item.brand,
+                category: item.category,
+                stock: item.stock
+            });
+        });
+
         // Validate cart items before processing
         const invalidItems = items.filter(item => {
             const isValid = item &&
                 item.id &&
                 item.name &&
                 typeof item.price === 'number' &&
-                item.quantity > 0 &&
-                item.thumbnail &&
-                item.brand &&
-                item.category &&
-                typeof item.stock === 'number';
+                item.quantity > 0;
 
             if (!isValid) {
                 console.log('Invalid item found:', item);
+                console.log('Item validation details:', {
+                    hasItem: !!item,
+                    hasId: !!item?.id,
+                    hasName: !!item?.name,
+                    hasValidPrice: typeof item?.price === 'number',
+                    hasValidQuantity: item?.quantity > 0
+                });
             }
             return !isValid;
         });
