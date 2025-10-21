@@ -17,7 +17,6 @@ import {
 import React from "react";
 import {
     UserCircle,
-    Settings,
     CreditCard,
     Package,
     Clock,
@@ -347,11 +346,6 @@ const AccountPage = () => {
             id: "profile",
             label: "My Account",
             icon: UserCircle,
-        },
-        {
-            id: "payment",
-            label: "Payment Methods",
-            icon: CreditCard,
         },
         {
             id: "orders",
