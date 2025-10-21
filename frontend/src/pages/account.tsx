@@ -349,11 +349,6 @@ const AccountPage = () => {
             icon: UserCircle,
         },
         {
-            id: "settings",
-            label: "Settings",
-            icon: Settings,
-        },
-        {
             id: "payment",
             label: "Payment Methods",
             icon: CreditCard,
@@ -674,42 +669,6 @@ const AccountPage = () => {
                     </div>
                 );
             }
-
-            case "settings":
-                return (
-                    <div className="space-y-6">
-                        <div>
-                            <h2 className="text-2xl font-bold">Settings</h2>
-                            <p className="text-muted-foreground">Manage your account preferences</p>
-                        </div>
-
-                        <Card className="p-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-2">Account Settings</h3>
-                                    <p className="text-muted-foreground">Update your account information and preferences</p>
-                                </div>
-                                <Separator />
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="font-medium">Email Notifications</p>
-                                            <p className="text-sm text-muted-foreground">Receive updates about your orders</p>
-                                        </div>
-                                        <Button variant="outline" size="sm">Enable</Button>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="font-medium">SMS Notifications</p>
-                                            <p className="text-sm text-muted-foreground">Get text updates on order status</p>
-                                        </div>
-                                        <Button variant="outline" size="sm">Enable</Button>
-                                    </div>
-                                </div>
-                            </div>
-                        </Card>
-                    </div>
-                );
 
             case "notifications":
                 return (
