@@ -521,7 +521,7 @@ const Transaction = () => {
                                 </div>
                             </CardHeader>
                             <CardContent className="flex-1 overflow-hidden">
-                                <ScrollArea className="h-full">
+                                <ScrollArea className="h-[calc(100vh-400px)]">
                                     {loading ? (
                                         <div className="text-center py-8 text-muted-foreground">
                                             Loading products...

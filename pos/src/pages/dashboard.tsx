@@ -68,6 +68,8 @@ const Dashboard = () => {
             const response = await apiService.getTodaySales();
             if (response.success) {
                 setTodaySales(response.data);
+            } else {
+                toast.error("Failed to load today's sales");
             }
         } catch (error) {
             console.error("Error fetching today's sales:", error);

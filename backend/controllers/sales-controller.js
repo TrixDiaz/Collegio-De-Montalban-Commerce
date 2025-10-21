@@ -394,25 +394,17 @@ export const getTodaySales = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Get start and end of today in UTC
+    // Get start of today and current time
     const now = new Date();
     const today = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
     );
-    const tomorrow = new Date(today);
-    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
-    // Get all sales created by this user today
+    // Get all sales created by this user today (from start of today until now)
     const todaySales = await db
       .select()
       .from(sales)
-      .where(
-        and(
-          eq(sales.userId, userId),
-          gte(sales.createdAt, today),
-          lte(sales.createdAt, tomorrow)
-        )
-      )
+      .where(and(eq(sales.userId, userId), gte(sales.createdAt, today)))
       .orderBy(desc(sales.createdAt));
 
     // Parse JSON fields and calculate totals
