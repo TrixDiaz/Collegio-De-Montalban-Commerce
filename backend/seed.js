@@ -69,6 +69,18 @@ const seedData = async () => {
     // Insert admin users
     const adminUserData = [
       {
+        email: "nocete13markjoseph@gmail.com",
+        name: "Mark Joseph Nocete",
+        role: "superadmin",
+        isVerified: true,
+      },
+      {
+        email: "john.darlucio022@gmail.com",
+        name: "John Darlucio",
+        role: "superadmin",
+        isVerified: true,
+      },
+      {
         email: "admin@example.com",
         name: "Admin User",
         role: "admin",
@@ -83,18 +95,6 @@ const seedData = async () => {
       {
         email: "manager@example.com",
         name: "Manager",
-        role: "admin",
-        isVerified: true,
-      },
-      {
-        email: "admin@tiledepot.com",
-        name: "Tile Depot Admin",
-        role: "admin",
-        isVerified: true,
-      },
-      {
-        email: "support@tiledepot.com",
-        name: "Support Admin",
         role: "admin",
         isVerified: true,
       },
@@ -417,11 +417,11 @@ const seedData = async () => {
     console.log(`   - Admin Users: ${insertedAdmins.length}`);
     console.log(`   - Products: ${insertedProducts.length}`);
     console.log(`\n🔐 Admin Login Credentials:`);
+    console.log(`   - nocete13markjoseph@gmail.com (Mark Joseph Nocete - Superadmin)`);
+    console.log(`   - john.darlucio022@gmail.com (John Darlucio - Superadmin)`);
     console.log(`   - admin@example.com (Admin User)`);
     console.log(`   - superadmin@example.com (Super Admin)`);
     console.log(`   - manager@example.com (Manager)`);
-    console.log(`   - admin@tiledepot.com (Tile Depot Admin)`);
-    console.log(`   - support@tiledepot.com (Support Admin)`);
   } catch (error) {
     console.error("❌ Error seeding data:", error);
     throw error;
