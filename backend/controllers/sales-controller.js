@@ -161,16 +161,26 @@ export const getUserSales = async (req, res) => {
     const userId = req.user.id;
     const {page = 1, limit = 10, status} = req.query;
 
-    let query = db.select().from(sales).where(eq(sales.userId, userId));
+    // Handle case where user might not have any sales yet
+    let userSales = [];
+    try {
+      let query = db.select().from(sales).where(eq(sales.userId, userId));
 
-    if (status) {
-      query = query.where(eq(sales.status, status));
+      if (status) {
+        query = query.where(eq(sales.status, status));
+      }
+
+      userSales = await query
+        .orderBy(desc(sales.createdAt))
+        .limit(parseInt(limit))
+        .offset((parseInt(page) - 1) * parseInt(limit));
+    } catch (dbError) {
+      console.log(
+        "No sales found for user, returning empty array:",
+        dbError.message
+      );
+      userSales = [];
     }
-
-    const userSales = await query
-      .orderBy(desc(sales.createdAt))
-      .limit(parseInt(limit))
-      .offset((parseInt(page) - 1) * parseInt(limit));
 
     // Parse JSON fields
     const formattedSales = userSales.map((sale) => ({
@@ -401,11 +411,21 @@ export const getTodaySales = async (req, res) => {
     );
 
     // Get all sales created by this user today (from start of today until now)
-    const todaySales = await db
-      .select()
-      .from(sales)
-      .where(and(eq(sales.userId, userId), gte(sales.createdAt, today)))
-      .orderBy(desc(sales.createdAt));
+    // Handle case where user might not have any sales yet
+    let todaySales = [];
+    try {
+      todaySales = await db
+        .select()
+        .from(sales)
+        .where(and(eq(sales.userId, userId), gte(sales.createdAt, today)))
+        .orderBy(desc(sales.createdAt));
+    } catch (dbError) {
+      console.log(
+        "No sales found for user, returning empty array:",
+        dbError.message
+      );
+      todaySales = [];
+    }
 
     // Parse JSON fields and calculate totals
     const formattedSales = todaySales.map((sale) => ({

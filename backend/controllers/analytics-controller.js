@@ -41,32 +41,52 @@ export const testAnalytics = async (req, res) => {
 export const getDashboardStats = async (req, res) => {
   try {
     // Get total users
-    const totalUsersResult = await db.select({count: count()}).from(users);
-    const totalUsers = totalUsersResult[0]?.count || 0;
+    let totalUsers = 0;
+    try {
+      const totalUsersResult = await db.select({count: count()}).from(users);
+      totalUsers = totalUsersResult[0]?.count || 0;
+    } catch (error) {
+      console.log("Error getting user count:", error.message);
+    }
 
     // Get total products
-    const totalProductsResult = await db
-      .select({count: count()})
-      .from(products);
-    const totalProducts = totalProductsResult[0]?.count || 0;
+    let totalProducts = 0;
+    try {
+      const totalProductsResult = await db
+        .select({count: count()})
+        .from(products);
+      totalProducts = totalProductsResult[0]?.count || 0;
+    } catch (error) {
+      console.log("Error getting product count:", error.message);
+    }
 
     // Get total orders (completed)
-    const totalOrdersResult = await db
-      .select({count: count()})
-      .from(sales)
-      .where(eq(sales.status, "completed"));
-    const totalOrders = totalOrdersResult[0]?.count || 0;
+    let totalOrders = 0;
+    try {
+      const totalOrdersResult = await db
+        .select({count: count()})
+        .from(sales)
+        .where(eq(sales.status, "completed"));
+      totalOrders = totalOrdersResult[0]?.count || 0;
+    } catch (error) {
+      console.log("Error getting orders count:", error.message);
+    }
 
     // Get total revenue (completed sales only)
-    const completedSales = await db
-      .select()
-      .from(sales)
-      .where(eq(sales.status, "completed"));
+    let totalRevenue = 0;
+    try {
+      const completedSales = await db
+        .select()
+        .from(sales)
+        .where(eq(sales.status, "completed"));
 
-    const totalRevenue = completedSales.reduce(
-      (sum, sale) => sum + parseFloat(sale.total || 0),
-      0
-    );
+      totalRevenue = completedSales.reduce(
+        (sum, sale) => sum + parseFloat(sale.total || 0),
+        0
+      );
+    } catch (error) {
+      console.log("Error getting revenue:", error.message);
+    }
 
     // Calculate growth (last 30 days vs previous 30 days)
     const now = new Date();
@@ -74,92 +94,120 @@ export const getDashboardStats = async (req, res) => {
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 
     // Recent period users
-    const recentUsersResult = await db
-      .select({count: count()})
-      .from(users)
-      .where(gte(users.createdAt, thirtyDaysAgo));
-    const recentUsers = recentUsersResult[0]?.count || 0;
+    let recentUsers = 0;
+    let previousUsers = 0;
+    let userGrowth = 0;
 
-    // Previous period users
-    const previousUsersResult = await db
-      .select({count: count()})
-      .from(users)
-      .where(
-        and(
-          gte(users.createdAt, sixtyDaysAgo),
-          lte(users.createdAt, thirtyDaysAgo)
-        )
-      );
-    const previousUsers = previousUsersResult[0]?.count || 0;
+    try {
+      const recentUsersResult = await db
+        .select({count: count()})
+        .from(users)
+        .where(gte(users.createdAt, thirtyDaysAgo));
+      recentUsers = recentUsersResult[0]?.count || 0;
 
-    const userGrowth =
-      previousUsers > 0
-        ? Math.round(((recentUsers - previousUsers) / previousUsers) * 100)
-        : 0;
+      // Previous period users
+      const previousUsersResult = await db
+        .select({count: count()})
+        .from(users)
+        .where(
+          and(
+            gte(users.createdAt, sixtyDaysAgo),
+            lte(users.createdAt, thirtyDaysAgo)
+          )
+        );
+      previousUsers = previousUsersResult[0]?.count || 0;
+
+      userGrowth =
+        previousUsers > 0
+          ? Math.round(((recentUsers - previousUsers) / previousUsers) * 100)
+          : 0;
+    } catch (error) {
+      console.log("Error calculating user growth:", error.message);
+    }
 
     // Recent period revenue
-    const recentSales = await db
-      .select()
-      .from(sales)
-      .where(
-        and(eq(sales.status, "completed"), gte(sales.createdAt, thirtyDaysAgo))
-      );
+    let recentRevenue = 0;
+    let previousRevenue = 0;
+    let revenueGrowth = 0;
+    let recentOrders = 0;
+    let previousOrders = 0;
+    let ordersGrowth = 0;
 
-    const recentRevenue = recentSales.reduce(
-      (sum, sale) => sum + parseFloat(sale.total || 0),
-      0
-    );
-
-    // Previous period revenue
-    const previousSales = await db
-      .select()
-      .from(sales)
-      .where(
-        and(
-          eq(sales.status, "completed"),
-          gte(sales.createdAt, sixtyDaysAgo),
-          lte(sales.createdAt, thirtyDaysAgo)
-        )
-      );
-
-    const previousRevenue = previousSales.reduce(
-      (sum, sale) => sum + parseFloat(sale.total || 0),
-      0
-    );
-
-    const revenueGrowth =
-      previousRevenue > 0
-        ? Math.round(
-            ((recentRevenue - previousRevenue) / previousRevenue) * 100
+    try {
+      const recentSales = await db
+        .select()
+        .from(sales)
+        .where(
+          and(
+            eq(sales.status, "completed"),
+            gte(sales.createdAt, thirtyDaysAgo)
           )
-        : 0;
+        );
 
-    // Recent period orders
-    const recentOrdersResult = await db
-      .select({count: count()})
-      .from(sales)
-      .where(
-        and(eq(sales.status, "completed"), gte(sales.createdAt, thirtyDaysAgo))
+      recentRevenue = recentSales.reduce(
+        (sum, sale) => sum + parseFloat(sale.total || 0),
+        0
       );
-    const recentOrders = recentOrdersResult[0]?.count || 0;
 
-    // Previous period orders
-    const previousOrdersResult = await db
-      .select({count: count()})
-      .from(sales)
-      .where(
-        and(
-          eq(sales.status, "completed"),
-          gte(sales.createdAt, sixtyDaysAgo),
-          lte(sales.createdAt, thirtyDaysAgo)
-        )
+      // Previous period revenue
+      const previousSales = await db
+        .select()
+        .from(sales)
+        .where(
+          and(
+            eq(sales.status, "completed"),
+            gte(sales.createdAt, sixtyDaysAgo),
+            lte(sales.createdAt, thirtyDaysAgo)
+          )
+        );
+
+      previousRevenue = previousSales.reduce(
+        (sum, sale) => sum + parseFloat(sale.total || 0),
+        0
       );
-    const previousOrders = previousOrdersResult[0]?.count || 0;
 
-    const ordersGrowth =
-      previousOrders > 0
-        ? Math.round(((recentOrders - previousOrders) / previousOrders) * 100)
-        : 0;
+      revenueGrowth =
+        previousRevenue > 0
+          ? Math.round(
+              ((recentRevenue - previousRevenue) / previousRevenue) * 100
+            )
+          : 0;
+
+      // Recent period orders
+      const recentOrdersResult = await db
+        .select({count: count()})
+        .from(sales)
+        .where(
+          and(
+            eq(sales.status, "completed"),
+            gte(sales.createdAt, thirtyDaysAgo)
+          )
+        );
+      recentOrders = recentOrdersResult[0]?.count || 0;
+
+      // Previous period orders
+      const previousOrdersResult = await db
+        .select({count: count()})
+        .from(sales)
+        .where(
+          and(
+            eq(sales.status, "completed"),
+            gte(sales.createdAt, sixtyDaysAgo),
+            lte(sales.createdAt, thirtyDaysAgo)
+          )
+        );
+      previousOrders = previousOrdersResult[0]?.count || 0;
+
+      ordersGrowth =
+        previousOrders > 0
+          ? Math.round(((recentOrders - previousOrders) / previousOrders) * 100)
+          : 0;
+    } catch (error) {
+      console.log(
+        "Error calculating revenue and orders growth:",
+        error.message
+      );
+    }
 
     res.json({
       success: true,
@@ -168,7 +216,7 @@ export const getDashboardStats = async (req, res) => {
         totalProducts,
         totalOrders,
         totalRevenue,
-        usersGrowth: userGrowth,
+        userGrowth,
         revenueGrowth,
         ordersGrowth,
       },

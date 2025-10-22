@@ -104,6 +104,52 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
+const createUser = async (req, res, next) => {
+  try {
+    const { name, email } = req.body;
+
+    // Validate required fields
+    if (!name || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Name and email are required",
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    if (existingUser.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "User with this email already exists",
+      });
+    }
+
+    // Create new user
+    const newUser = await db
+      .insert(users)
+      .values({
+        name,
+        email,
+        isVerified: false, // New users start as unverified
+      })
+      .returning();
+
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      user: newUser[0],
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getMe = async (req, res, next) => {
   try {
     // The user data is already attached to req.user by the auth middleware
@@ -126,4 +172,4 @@ const getMe = async (req, res, next) => {
   }
 };
 
-export {getUsers, getUserById, updateUserName, deleteUser, getMe};
+export {getUsers, getUserById, updateUserName, deleteUser, getMe, createUser};

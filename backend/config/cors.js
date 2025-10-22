@@ -8,6 +8,7 @@ const allowedOrigins = [
   "http://localhost:4173", // Vite preview
   "http://localhost:3001", // Alternative React port
   "http://localhost:8080", // Alternative port
+  "http://localhost:8081", // Mobile app
   "https://your-production-domain.com", // Your live website
 ];
 
