@@ -101,7 +101,7 @@ const generateOTPForUser = async (req, res, next) => {
     const expiresAt = generateOTPExpiresAt();
 
     // Send OTP to user given email
-    // await sendOtpEmail({to: email, otp, name: existingUser.name});
+    await sendOtpEmail({to: email, otp, name: existingUser.name});
 
     // Insert OTP into database
     await db.insert(otps).values({
