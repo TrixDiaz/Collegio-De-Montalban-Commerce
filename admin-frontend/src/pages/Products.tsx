@@ -109,7 +109,8 @@ export const Products = () => {
       cleanPath = normalizedPath.substring(8); // Remove "uploads/" prefix
     }
 
-    const finalUrl = `http://localhost:5000/uploads/${cleanPath}`;
+    // Ensure no double slashes in the final URL
+    const finalUrl = `http://localhost:5000/uploads/${cleanPath}`.replace(/\/+/g, '/').replace('http:/', 'http://');
     console.log('Image URL:', finalUrl, 'Original path:', imagePath);
     return finalUrl;
   }, []);
@@ -322,8 +323,8 @@ export const Products = () => {
             onSubmit={handleCreateProduct}
             isEdit={false}
             product={null}
-            categories={categoriesData || []}
-            brands={brandsData || []}
+            categories={categoriesData?.categories || []}
+            brands={brandsData?.brands || []}
             isLoading={createProduct.isPending}
             selectedFiles={selectedFiles}
             setSelectedFiles={setSelectedFiles}
@@ -514,8 +515,8 @@ export const Products = () => {
           onSubmit={handleUpdateProduct}
           isEdit={true}
           product={selectedProduct}
-          categories={categoriesData || []}
-          brands={brandsData || []}
+          categories={categoriesData?.categories || []}
+          brands={brandsData?.brands || []}
           isLoading={updateProduct.isPending}
           selectedFiles={selectedFiles}
           setSelectedFiles={setSelectedFiles}

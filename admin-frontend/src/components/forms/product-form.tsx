@@ -327,11 +327,15 @@ export const ProductForm = ({
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {categories.map((category) => (
+                                                {categories && Array.isArray(categories) ? categories.map((category) => (
                                                     <SelectItem key={category.id} value={category.id}>
                                                         {category.name}
                                                     </SelectItem>
-                                                ))}
+                                                )) : (
+                                                    <SelectItem value="no-categories" disabled>
+                                                        No categories available
+                                                    </SelectItem>
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -351,11 +355,15 @@ export const ProductForm = ({
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {brands.map((brand) => (
+                                                {brands && Array.isArray(brands) ? brands.map((brand) => (
                                                     <SelectItem key={brand.id} value={brand.id}>
                                                         {brand.name}
                                                     </SelectItem>
-                                                ))}
+                                                )) : (
+                                                    <SelectItem value="no-brands" disabled>
+                                                        No brands available
+                                                    </SelectItem>
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
