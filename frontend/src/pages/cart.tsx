@@ -15,6 +15,9 @@ import { getImageUrl } from '@/lib/utils';
 import { apiService } from '@/services/api';
 import { toast } from 'sonner';
 
+// Helper function to round to 2 decimal places
+const roundToTwo = (num: number) => Math.round(num * 100) / 100;
+
 const Cart = () => {
     const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart();
     const { user } = useAuth();
@@ -26,15 +29,15 @@ const Cart = () => {
 
     // Calculate cart totals
     const subtotal = getTotalPrice();
-    const tax = subtotal * 0.12; // 12% VAT
+    const tax = roundToTwo(subtotal * 0.12); // 12% VAT, rounded to 2 decimal places
     const discount = appliedDiscount;
-    const total = subtotal + tax - discount;
+    const total = roundToTwo(subtotal + tax - discount); // Round total to 2 decimal places
 
     const applyDiscount = () => {
         if (discountCode.toLowerCase() === 'save10') {
-            setAppliedDiscount(subtotal * 0.10);
+            setAppliedDiscount(roundToTwo(subtotal * 0.10));
         } else if (discountCode.toLowerCase() === 'welcome20') {
-            setAppliedDiscount(subtotal * 0.20);
+            setAppliedDiscount(roundToTwo(subtotal * 0.20));
         } else {
             setAppliedDiscount(0);
         }
