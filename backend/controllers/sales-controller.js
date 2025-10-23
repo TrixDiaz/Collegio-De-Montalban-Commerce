@@ -23,6 +23,13 @@ export const createSale = async (req, res) => {
     } = req.body;
     const userId = req.user.id;
 
+    // Validate that user exists and is valid
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    console.log("Creating sale for user ID:", userId);
+
     // Validate required fields
     if (!items || !Array.isArray(items) || items.length === 0) {
       throw new Error("Items are required and must be a non-empty array");

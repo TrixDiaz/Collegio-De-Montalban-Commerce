@@ -23,20 +23,19 @@ const authorize = async (req, res, next) => {
       });
     }
 
-    // Development bypass for any token starting with 'eyJ' (JWT format)
-    if (token.startsWith("eyJ")) {
-      req.user = {
-        id: "550e8400-e29b-41d4-a716-446655440000", // Fixed UUID for test user
-        email: "test@example.com",
-        name: "Test User",
-        isVerified: true,
-      };
-      return next();
-    }
+    // Remove development bypass - use proper JWT verification
 
     // Verify the token
     const decoded = verifyAccessToken(token);
     console.log("Auth middleware - decoded token userId:", decoded.userId);
+
+    if (!decoded.userId) {
+      console.log("Auth middleware - no userId in decoded token");
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token format",
+      });
+    }
 
     const user = await db
       .select()
@@ -44,6 +43,7 @@ const authorize = async (req, res, next) => {
       .where(eq(users.id, decoded.userId));
 
     console.log("Auth middleware - user found:", user.length > 0);
+    console.log("Auth middleware - searching for userId:", decoded.userId);
 
     if (!user || user.length === 0) {
       console.log(
@@ -52,7 +52,11 @@ const authorize = async (req, res, next) => {
       );
       return res.status(401).json({
         success: false,
-        message: "Unauthorized access, user not found",
+        message: "User not found. Please login again.",
+        debug: {
+          userId: decoded.userId,
+          tokenProvided: !!token,
+        },
       });
     }
 

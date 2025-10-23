@@ -156,6 +156,11 @@ const Cart = () => {
             return;
         }
 
+        // Debug: Log user information
+        console.log('Current user:', user);
+        console.log('User ID:', user?.id);
+        console.log('Tokens exist:', !!tokens);
+
         if (items.length === 0) {
             toast.error('Your cart is empty');
             return;
