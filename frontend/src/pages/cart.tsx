@@ -239,7 +239,7 @@ const Cart = () => {
                 toast.success('Order placed successfully!');
                 clearCart();
                 // Redirect to payment success page for COD orders too
-                navigate(`/payment/success?payment_method=${paymentMethod}&amount=${total}&order_number=${(response as any).data?.orderNumber || 'N/A'}`);
+                navigate(`/payment/success?payment_method=${paymentMethod}&amount=${total}&order_number=${(response as any).order?.orderNumber || 'N/A'}`);
             } else {
                 toast.error((response as any).message || 'Failed to place order');
             }
