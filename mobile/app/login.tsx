@@ -14,7 +14,6 @@ import { useAuth } from '@/contexts/auth-context';
 import { apiService } from '@/services/api';
 import { router } from 'expo-router';
 import NetworkStatus from '@/components/NetworkStatus';
-import { testBackendConnection, testAuthEndpoint } from '@/utils/connectionTest';
 
 export default function LoginScreen() {
   const [ email, setEmail ] = useState('');
@@ -69,7 +68,7 @@ export default function LoginScreen() {
     try {
       const response = await apiService.verifyOTP(email, otp);
       if (response.success && response.user) {
-        login(response.user, {
+        await login(response.user, {
           accessToken: response.accessToken,
           refreshToken: response.refreshToken,
         });
@@ -91,20 +90,6 @@ export default function LoginScreen() {
     setOtp('');
   };
 
-  const handleTestConnection = async () => {
-    Alert.alert('Testing Connection', 'Testing backend connection...');
-
-    try {
-      const result = await testBackendConnection();
-      if (result.success) {
-        Alert.alert('Success', 'Backend connection successful!');
-      } else {
-        Alert.alert('Connection Failed', `Error: ${result.error}`);
-      }
-    } catch (error) {
-      Alert.alert('Test Failed', 'Unable to test connection');
-    }
-  };
 
   return (
     <KeyboardAvoidingView
@@ -180,13 +165,6 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity
-                style={styles.testButton}
-                onPress={handleTestConnection}
-                disabled={isLoading}
-              >
-                <Text style={styles.testButtonText}>Test Connection</Text>
-              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -267,19 +245,6 @@ const styles = StyleSheet.create({
   linkText: {
     color: '#3b82f6',
     fontSize: 14,
-    fontWeight: '500',
-  },
-  testButton: {
-    backgroundColor: '#6b7280',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    marginTop: 16,
-    alignSelf: 'center',
-  },
-  testButtonText: {
-    color: 'white',
-    fontSize: 12,
     fontWeight: '500',
   },
 });

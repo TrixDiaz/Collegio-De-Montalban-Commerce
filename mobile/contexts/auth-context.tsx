@@ -41,23 +41,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const checkAuthStatus = async () => {
             try {
                 console.log('🔍 Checking auth status...');
-                console.log('🔍 Is authenticated:', apiService.isAuthenticated);
+
+                // Check if we have valid tokens
+                const hasValidTokens = await apiService.checkAuthStatus();
+                console.log('🔍 Has valid tokens:', hasValidTokens);
 
                 // Only try to get profile if we have tokens
-                if (apiService.isAuthenticated) {
+                if (hasValidTokens) {
                     try {
                         console.log('🔍 Fetching user profile...');
                         const userData = await apiService.getProfile();
                         if (userData) {
                             console.log('✅ User profile fetched successfully');
                             setUser(userData);
-                            // Don't navigate here, let the index screen handle it
+                            // Set loading to false after successful authentication
+                            setIsLoading(false);
                             return;
                         }
                     } catch (profileError) {
                         console.log('❌ Profile fetch failed, user not authenticated:', profileError);
                         // Clear any invalid tokens
-                        apiService.logout();
+                        await apiService.clearTokens();
                     }
                 } else {
                     console.log('🔍 No authentication token found');
@@ -65,7 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             } catch (error) {
                 console.error('❌ Error checking auth status:', error);
                 // Clear tokens if profile fetch fails
-                apiService.logout();
+                await apiService.clearTokens();
             }
 
             // Always set loading to false
@@ -84,14 +88,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
     }, []);
 
-    const login = (userData: User, tokens: { accessToken: string; refreshToken: string }) => {
+    const login = async (userData: User, tokens: { accessToken: string; refreshToken: string }) => {
         setUser(userData);
-        apiService.saveTokens(tokens.accessToken, tokens.refreshToken);
+        await apiService.saveTokens(tokens.accessToken, tokens.refreshToken);
     };
 
-    const logout = () => {
+    const logout = async () => {
         setUser(null);
-        apiService.logout();
+        await apiService.clearTokens();
     };
 
     const value: AuthContextType = {

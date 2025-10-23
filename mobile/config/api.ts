@@ -1,12 +1,15 @@
+// Global API Configuration
+// Change this URL to update the backend server for the entire mobile app
+export const GLOBAL_API_BASE_URL = 'http://192.168.1.64:5000/api/v1';
+
 // API Configuration
 export const API_CONFIG = {
-    // Change this to your backend server URL
-    // BASE_URL: 'http://localhost:5000/api', // Use localhost for Expo tunnel
-    BASE_URL: 'http://192.168.1.64:5000/api', // Use your computer's IP for device testing
+    // Use the global base URL
+    BASE_URL: GLOBAL_API_BASE_URL,
 
-    // Alternative URLs for different environments
-    // BASE_URL: 'http://localhost:5000/api', // For simulator only
-    // BASE_URL: 'https://your-backend-domain.com/api', // For production
+    // Alternative URLs for different environments (uncomment as needed)
+    // BASE_URL: 'http://localhost:5000/api/v1', // For localhost development
+    // BASE_URL: 'https://your-backend-domain.com/api/v1', // For production
 
     // Request timeout in milliseconds
     TIMEOUT: 10000,

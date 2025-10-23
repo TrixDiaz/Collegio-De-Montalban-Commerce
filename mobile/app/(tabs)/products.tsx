@@ -18,6 +18,15 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { apiService, Product, ProductsResponse } from '@/services/api';
+import { ScrollablePicker } from '@/components/ui/scrollable-picker';
+import {
+    getResponsiveDimensions,
+    getResponsiveFontSize,
+    getResponsivePadding,
+    getCardWidth,
+    getImageDimensions,
+    getButtonDimensions
+} from '@/utils/responsive';
 
 export default function ProductsScreen() {
     const [ products, setProducts ] = useState<Product[]>([]);
@@ -71,6 +80,10 @@ export default function ProductsScreen() {
     });
     const [ editThumbnail, setEditThumbnail ] = useState<string | null>(null);
     const [ editImages, setEditImages ] = useState<string[]>([]);
+    const [ showCategoryPicker, setShowCategoryPicker ] = useState(false);
+    const [ showBrandPicker, setShowBrandPicker ] = useState(false);
+    const [ showEditCategoryPicker, setShowEditCategoryPicker ] = useState(false);
+    const [ showEditBrandPicker, setShowEditBrandPicker ] = useState(false);
 
     const fetchProducts = async () => {
         try {
@@ -229,7 +242,7 @@ export default function ProductsScreen() {
             isFeatured: product.isFeatured,
         });
         setEditThumbnail(product.thumbnail ? apiService.getImageUrl(product.thumbnail) : null);
-        setEditImages(product.images || []);
+        setEditImages(product.images ? product.images.map(img => apiService.getImageUrl(img)) : []);
         setShowEditModal(true);
     };
 
@@ -554,102 +567,104 @@ export default function ProductsScreen() {
                     </View>
 
                     {selectedProduct && (
-                        <ScrollView style={styles.modalContent}>
-                            <View style={styles.modalImageContainer}>
-                                {selectedProduct.thumbnail ? (
-                                    <Image
-                                        source={{ uri: getProductImageUrl(selectedProduct.thumbnail) }}
-                                        style={styles.modalImage}
-                                        resizeMode="cover"
-                                    />
-                                ) : (
-                                    <View style={styles.modalPlaceholderImage}>
-                                        <Text style={styles.modalPlaceholderText}>📦</Text>
-                                    </View>
-                                )}
-                            </View>
-
-                            <View style={styles.modalInfo}>
-                                <Text style={styles.modalProductName}>{selectedProduct.name}</Text>
-                                <Text style={styles.modalProductDescription}>{selectedProduct.description}</Text>
-
-                                <View style={styles.modalDetails}>
-                                    <View style={styles.modalDetailRow}>
-                                        <Text style={styles.modalDetailLabel}>Price:</Text>
-                                        <Text style={styles.modalDetailValue}>₱{selectedProduct.price}</Text>
-                                    </View>
-
-                                    {selectedProduct.discount && selectedProduct.discountPrice && (
-                                        <View style={styles.modalDetailRow}>
-                                            <Text style={styles.modalDetailLabel}>Discount Price:</Text>
-                                            <Text style={styles.modalDetailValue}>₱{selectedProduct.discountPrice}</Text>
+                        <View style={styles.modalContent}>
+                            <ScrollView style={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
+                                <View style={styles.modalImageContainer}>
+                                    {selectedProduct.thumbnail ? (
+                                        <Image
+                                            source={{ uri: getProductImageUrl(selectedProduct.thumbnail) }}
+                                            style={styles.modalImage}
+                                            resizeMode="cover"
+                                        />
+                                    ) : (
+                                        <View style={styles.modalPlaceholderImage}>
+                                            <Text style={styles.modalPlaceholderText}>📦</Text>
                                         </View>
                                     )}
-
-                                    <View style={styles.modalDetailRow}>
-                                        <Text style={styles.modalDetailLabel}>Stock:</Text>
-                                        <Text style={styles.modalDetailValue}>{selectedProduct.stock}</Text>
-                                    </View>
-
-                                    <View style={styles.modalDetailRow}>
-                                        <Text style={styles.modalDetailLabel}>Sold:</Text>
-                                        <Text style={styles.modalDetailValue}>{selectedProduct.sold}</Text>
-                                    </View>
-
-                                    <View style={styles.modalDetailRow}>
-                                        <Text style={styles.modalDetailLabel}>Category:</Text>
-                                        <Text style={styles.modalDetailValue}>{selectedProduct.category}</Text>
-                                    </View>
-
-                                    <View style={styles.modalDetailRow}>
-                                        <Text style={styles.modalDetailLabel}>Brand:</Text>
-                                        <Text style={styles.modalDetailValue}>{selectedProduct.brand}</Text>
-                                    </View>
-
-                                    <View style={styles.modalDetailRow}>
-                                        <Text style={styles.modalDetailLabel}>Rating:</Text>
-                                        <Text style={styles.modalDetailValue}>{selectedProduct.rating} ⭐</Text>
-                                    </View>
-
-                                    <View style={styles.modalDetailRow}>
-                                        <Text style={styles.modalDetailLabel}>Reviews:</Text>
-                                        <Text style={styles.modalDetailValue}>{selectedProduct.numReviews}</Text>
-                                    </View>
                                 </View>
 
-                                <View style={styles.modalFlags}>
-                                    {selectedProduct.isNew && <Text style={styles.modalFlag}>NEW</Text>}
-                                    {selectedProduct.isBestSeller && <Text style={styles.modalFlag}>BEST SELLER</Text>}
-                                    {selectedProduct.isTopRated && <Text style={styles.modalFlag}>TOP RATED</Text>}
-                                    {selectedProduct.isOnSale && <Text style={styles.modalFlag}>ON SALE</Text>}
-                                    {selectedProduct.isTrending && <Text style={styles.modalFlag}>TRENDING</Text>}
-                                    {selectedProduct.isHot && <Text style={styles.modalFlag}>HOT</Text>}
-                                    {selectedProduct.isFeatured && <Text style={styles.modalFlag}>FEATURED</Text>}
-                                </View>
+                                <View style={styles.modalInfo}>
+                                    <Text style={styles.modalProductName}>{selectedProduct.name}</Text>
+                                    <Text style={styles.modalProductDescription}>{selectedProduct.description}</Text>
 
-                                <View style={styles.modalActions}>
-                                    <TouchableOpacity
-                                        style={[ styles.modalActionButton, styles.editButton ]}
-                                        onPress={() => {
-                                            setShowProductModal(false);
-                                            handleEditProduct(selectedProduct);
-                                        }}
-                                    >
-                                        <Text style={styles.editButtonText}>✏️ Edit</Text>
-                                    </TouchableOpacity>
+                                    <View style={styles.modalDetails}>
+                                        <View style={styles.modalDetailRow}>
+                                            <Text style={styles.modalDetailLabel}>Price:</Text>
+                                            <Text style={styles.modalDetailValue}>₱{selectedProduct.price}</Text>
+                                        </View>
 
-                                    <TouchableOpacity
-                                        style={[ styles.modalActionButton, styles.deleteButton ]}
-                                        onPress={() => {
-                                            setShowProductModal(false);
-                                            handleDeleteProduct(selectedProduct);
-                                        }}
-                                    >
-                                        <Text style={styles.deleteButtonText}>🗑️ Delete</Text>
-                                    </TouchableOpacity>
+                                        {selectedProduct.discount && selectedProduct.discountPrice && (
+                                            <View style={styles.modalDetailRow}>
+                                                <Text style={styles.modalDetailLabel}>Discount Price:</Text>
+                                                <Text style={styles.modalDetailValue}>₱{selectedProduct.discountPrice}</Text>
+                                            </View>
+                                        )}
+
+                                        <View style={styles.modalDetailRow}>
+                                            <Text style={styles.modalDetailLabel}>Stock:</Text>
+                                            <Text style={styles.modalDetailValue}>{selectedProduct.stock}</Text>
+                                        </View>
+
+                                        <View style={styles.modalDetailRow}>
+                                            <Text style={styles.modalDetailLabel}>Sold:</Text>
+                                            <Text style={styles.modalDetailValue}>{selectedProduct.sold}</Text>
+                                        </View>
+
+                                        <View style={styles.modalDetailRow}>
+                                            <Text style={styles.modalDetailLabel}>Category:</Text>
+                                            <Text style={styles.modalDetailValue}>{selectedProduct.category}</Text>
+                                        </View>
+
+                                        <View style={styles.modalDetailRow}>
+                                            <Text style={styles.modalDetailLabel}>Brand:</Text>
+                                            <Text style={styles.modalDetailValue}>{selectedProduct.brand}</Text>
+                                        </View>
+
+                                        <View style={styles.modalDetailRow}>
+                                            <Text style={styles.modalDetailLabel}>Rating:</Text>
+                                            <Text style={styles.modalDetailValue}>{selectedProduct.rating} ⭐</Text>
+                                        </View>
+
+                                        <View style={styles.modalDetailRow}>
+                                            <Text style={styles.modalDetailLabel}>Reviews:</Text>
+                                            <Text style={styles.modalDetailValue}>{selectedProduct.numReviews}</Text>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.modalFlags}>
+                                        {selectedProduct.isNew && <Text style={styles.modalFlag}>NEW</Text>}
+                                        {selectedProduct.isBestSeller && <Text style={styles.modalFlag}>BEST SELLER</Text>}
+                                        {selectedProduct.isTopRated && <Text style={styles.modalFlag}>TOP RATED</Text>}
+                                        {selectedProduct.isOnSale && <Text style={styles.modalFlag}>ON SALE</Text>}
+                                        {selectedProduct.isTrending && <Text style={styles.modalFlag}>TRENDING</Text>}
+                                        {selectedProduct.isHot && <Text style={styles.modalFlag}>HOT</Text>}
+                                        {selectedProduct.isFeatured && <Text style={styles.modalFlag}>FEATURED</Text>}
+                                    </View>
                                 </View>
+                            </ScrollView>
+
+                            <View style={styles.modalActions}>
+                                <TouchableOpacity
+                                    style={[ styles.modalActionButton, styles.editButton ]}
+                                    onPress={() => {
+                                        setShowProductModal(false);
+                                        handleEditProduct(selectedProduct);
+                                    }}
+                                >
+                                    <Text style={styles.editButtonText}>✏️ Edit</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[ styles.modalActionButton, styles.deleteButton ]}
+                                    onPress={() => {
+                                        setShowProductModal(false);
+                                        handleDeleteProduct(selectedProduct);
+                                    }}
+                                >
+                                    <Text style={styles.deleteButtonText}>🗑️ Delete</Text>
+                                </TouchableOpacity>
                             </View>
-                        </ScrollView>
+                        </View>
                     )}
                 </View>
             </Modal>
@@ -731,17 +746,7 @@ export default function ProductsScreen() {
                                         <Text style={styles.label}>Category *</Text>
                                         <TouchableOpacity
                                             style={styles.dropdown}
-                                            onPress={() => {
-                                                // Show category picker
-                                                Alert.alert(
-                                                    'Select Category',
-                                                    '',
-                                                    categories.map(cat => ({
-                                                        text: cat.name,
-                                                        onPress: () => setCreateProductData({ ...createProductData, categoryId: cat.id })
-                                                    }))
-                                                );
-                                            }}
+                                            onPress={() => setShowCategoryPicker(true)}
                                         >
                                             <Text style={styles.dropdownText}>
                                                 {createProductData.categoryId
@@ -757,17 +762,7 @@ export default function ProductsScreen() {
                                         <Text style={styles.label}>Brand *</Text>
                                         <TouchableOpacity
                                             style={styles.dropdown}
-                                            onPress={() => {
-                                                // Show brand picker
-                                                Alert.alert(
-                                                    'Select Brand',
-                                                    '',
-                                                    brands.map(brand => ({
-                                                        text: brand.name,
-                                                        onPress: () => setCreateProductData({ ...createProductData, brandId: brand.id })
-                                                    }))
-                                                );
-                                            }}
+                                            onPress={() => setShowBrandPicker(true)}
                                         >
                                             <Text style={styles.dropdownText}>
                                                 {createProductData.brandId
@@ -1034,17 +1029,7 @@ export default function ProductsScreen() {
                                         <Text style={styles.label}>Category *</Text>
                                         <TouchableOpacity
                                             style={styles.dropdown}
-                                            onPress={() => {
-                                                // Show category picker
-                                                Alert.alert(
-                                                    'Select Category',
-                                                    '',
-                                                    categories.map(cat => ({
-                                                        text: cat.name,
-                                                        onPress: () => setEditProductData({ ...editProductData, categoryId: cat.id })
-                                                    }))
-                                                );
-                                            }}
+                                            onPress={() => setShowEditCategoryPicker(true)}
                                         >
                                             <Text style={styles.dropdownText}>
                                                 {editProductData.categoryId
@@ -1060,17 +1045,7 @@ export default function ProductsScreen() {
                                         <Text style={styles.label}>Brand *</Text>
                                         <TouchableOpacity
                                             style={styles.dropdown}
-                                            onPress={() => {
-                                                // Show brand picker
-                                                Alert.alert(
-                                                    'Select Brand',
-                                                    '',
-                                                    brands.map(brand => ({
-                                                        text: brand.name,
-                                                        onPress: () => setEditProductData({ ...editProductData, brandId: brand.id })
-                                                    }))
-                                                );
-                                            }}
+                                            onPress={() => setShowEditBrandPicker(true)}
                                         >
                                             <Text style={styles.dropdownText}>
                                                 {editProductData.brandId
@@ -1259,6 +1234,54 @@ export default function ProductsScreen() {
                     </KeyboardAvoidingView>
                 </SafeAreaView>
             </Modal>
+
+            {/* Category Picker for Create */}
+            <ScrollablePicker
+                visible={showCategoryPicker}
+                title="Select Category"
+                items={categories}
+                selectedItem={categories.find(c => c.id === createProductData.categoryId) || null}
+                onSelect={(category) => {
+                    setCreateProductData({ ...createProductData, categoryId: category.id });
+                }}
+                onClose={() => setShowCategoryPicker(false)}
+            />
+
+            {/* Brand Picker for Create */}
+            <ScrollablePicker
+                visible={showBrandPicker}
+                title="Select Brand"
+                items={brands}
+                selectedItem={brands.find(b => b.id === createProductData.brandId) || null}
+                onSelect={(brand) => {
+                    setCreateProductData({ ...createProductData, brandId: brand.id });
+                }}
+                onClose={() => setShowBrandPicker(false)}
+            />
+
+            {/* Category Picker for Edit */}
+            <ScrollablePicker
+                visible={showEditCategoryPicker}
+                title="Select Category"
+                items={categories}
+                selectedItem={categories.find(c => c.id === editProductData.categoryId) || null}
+                onSelect={(category) => {
+                    setEditProductData({ ...editProductData, categoryId: category.id });
+                }}
+                onClose={() => setShowEditCategoryPicker(false)}
+            />
+
+            {/* Brand Picker for Edit */}
+            <ScrollablePicker
+                visible={showEditBrandPicker}
+                title="Select Brand"
+                items={brands}
+                selectedItem={brands.find(b => b.id === editProductData.brandId) || null}
+                onSelect={(brand) => {
+                    setEditProductData({ ...editProductData, brandId: brand.id });
+                }}
+                onClose={() => setShowEditBrandPicker(false)}
+            />
         </SafeAreaView>
     );
 }
@@ -1280,7 +1303,7 @@ const styles = StyleSheet.create({
         color: '#6b7280',
     },
     header: {
-        padding: 20,
+        padding: getResponsivePadding(20),
         backgroundColor: 'white',
         borderBottomWidth: 1,
         borderBottomColor: '#e5e7eb',
@@ -1291,12 +1314,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
-        fontSize: 24,
+        fontSize: getResponsiveFontSize(24),
         fontWeight: 'bold',
         color: '#1f2937',
     },
     subtitle: {
-        fontSize: 16,
+        fontSize: getResponsiveFontSize(16),
         color: '#6b7280',
         marginTop: 4,
     },
@@ -1519,6 +1542,9 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
     },
+    modalScrollContent: {
+        flex: 1,
+    },
     modalImageContainer: {
         width: '100%',
         height: 250,
@@ -1589,6 +1615,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 12,
         marginTop: 20,
+        paddingTop: 20,
+        borderTopWidth: 1,
+        borderTopColor: '#e5e7eb',
     },
     modalActionButton: {
         flex: 1,

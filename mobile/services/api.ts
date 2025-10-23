@@ -1,7 +1,8 @@
-// import { getApiUrl } from '@/config/api';
+import { GLOBAL_API_BASE_URL } from '@/config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Force the correct URL for now
-const BASE_URL = 'http://192.168.1.64:5000/api/v1';
+// Use the global API base URL
+const BASE_URL = GLOBAL_API_BASE_URL;
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -133,47 +134,55 @@ class ApiService {
     return !!this.accessToken;
   }
 
-  constructor() {
-    this.baseURL = BASE_URL;
-    this.loadTokens();
-
-    // Don't set a hardcoded token - let the app start fresh
-    // this.accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LXVzZXItaWQiLCJpYXQiOjE3NjExNTI4ODIsImV4cCI6MTc2MTE1NjQ4Mn0.5zidsMi6e0yPN46SXVQLQAj1i1p3xHYF3LGquiMSrxs';
+  // Method to check if tokens are loaded and valid
+  async checkAuthStatus(): Promise<boolean> {
+    if (!this.accessToken) {
+      await this.loadTokens();
+    }
+    return !!this.accessToken;
   }
 
-  private loadTokens() {
-    // For mobile, we'll use a simple in-memory storage
-    // In production, use AsyncStorage or SecureStore
+  constructor() {
+    this.baseURL = BASE_URL;
+    // Load tokens asynchronously
+    this.initializeTokens();
+  }
+
+  private async initializeTokens() {
+    await this.loadTokens();
+  }
+
+  private async loadTokens() {
     try {
-      // This would be replaced with AsyncStorage in a real app
-      // const tokens = await AsyncStorage.getItem('mobile_tokens');
-      // if (tokens) {
-      //   const parsed = JSON.parse(tokens);
-      //   this.accessToken = parsed.accessToken;
-      //   this.refreshToken = parsed.refreshToken;
-      // }
+      const tokens = await AsyncStorage.getItem('mobile_tokens');
+      if (tokens) {
+        const parsed = JSON.parse(tokens);
+        this.accessToken = parsed.accessToken;
+        this.refreshToken = parsed.refreshToken;
+        console.log('🔐 Tokens loaded from storage');
+      }
     } catch (error) {
       console.error('Error loading tokens:', error);
     }
   }
 
-  private saveTokens(accessToken: string, refreshToken: string) {
+  async saveTokens(accessToken: string, refreshToken: string) {
     this.accessToken = accessToken;
     this.refreshToken = refreshToken;
     try {
-      // This would be replaced with AsyncStorage in a real app
-      // await AsyncStorage.setItem('mobile_tokens', JSON.stringify({ accessToken, refreshToken }));
+      await AsyncStorage.setItem('mobile_tokens', JSON.stringify({ accessToken, refreshToken }));
+      console.log('🔐 Tokens saved successfully');
     } catch (error) {
       console.error('Error saving tokens:', error);
     }
   }
 
-  private clearTokens() {
+  async clearTokens() {
     this.accessToken = null;
     this.refreshToken = null;
     try {
-      // This would be replaced with AsyncStorage in a real app
-      // await AsyncStorage.removeItem('mobile_tokens');
+      await AsyncStorage.removeItem('mobile_tokens');
+      console.log('🔐 Tokens cleared successfully');
     } catch (error) {
       console.error('Error clearing tokens:', error);
     }
@@ -378,25 +387,72 @@ class ApiService {
   }
 
   async createProduct(formData: FormData): Promise<Product> {
-    const response = await this.makeRequest<Product>('/products', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        // Don't set Content-Type for FormData, let the browser set it
-      },
-    });
-    return (response.data || response) as Product;
+    const url = `${this.baseURL}/products`;
+
+    const headers: Record<string, string> = {};
+    if (this.accessToken) {
+      headers.Authorization = `Bearer ${this.accessToken}`;
+    }
+    // Don't set Content-Type for FormData, let the browser set it
+
+    try {
+      console.log('🌐 Creating product with FormData');
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      return (data.data || data) as Product;
+    } catch (error) {
+      console.error('🌐 Create product failed:', error);
+      throw error;
+    }
   }
 
   async updateProduct(id: string, formData: FormData): Promise<Product> {
-    const response = await this.makeRequest<Product>(`/products/${id}`, {
-      method: 'PUT',
-      body: formData,
-      headers: {
-        // Don't set Content-Type for FormData, let the browser set it
-      },
-    });
-    return (response.data || response) as Product;
+    const url = `${this.baseURL}/products/${id}`;
+
+    const headers: Record<string, string> = {};
+    if (this.accessToken) {
+      headers.Authorization = `Bearer ${this.accessToken}`;
+    }
+    // Don't set Content-Type for FormData, let the browser set it
+
+    try {
+      console.log('🌐 Updating product with FormData');
+      console.log('🌐 URL:', url);
+      console.log('🌐 Headers:', headers);
+
+      // Log FormData contents for debugging
+      console.log('🌐 FormData contents:');
+      for (let pair of (formData as any).entries()) {
+        console.log('🌐 FormData:', pair[ 0 ], '=', pair[ 1 ]);
+      }
+
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      return (data.data || data) as Product;
+    } catch (error) {
+      console.error('🌐 Update product failed:', error);
+      throw error;
+    }
   }
 
   async deleteProduct(id: string): Promise<void> {
@@ -516,7 +572,9 @@ class ApiService {
       cleanPath = normalizedPath.substring(8);
     }
 
-    return `http://192.168.1.64:5000/uploads/${cleanPath}`.replace(/\/+/g, '/').replace('http:/', 'http://');
+    // Use the global base URL for image serving
+    const baseUrl = GLOBAL_API_BASE_URL.replace('/api/v1', '');
+    return `${baseUrl}/uploads/${cleanPath}`.replace(/\/+/g, '/').replace('http:/', 'http://');
   }
 }
 

@@ -64,7 +64,7 @@ export default function DashboardScreen() {
       'Are you sure you want to logout?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: logout },
+        { text: 'Logout', style: 'destructive', onPress: async () => await logout() },
       ]
     );
   };

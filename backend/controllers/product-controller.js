@@ -540,6 +540,12 @@ const updateProduct = async (req, res, next) => {
     const {id} = req.params;
     const data = req.body;
 
+    // Debug: Log the received data
+    console.log("🔍 Update Product - Received data:", data);
+    console.log("🔍 Update Product - req.body:", req.body);
+    console.log("🔍 Update Product - req.files:", req.files);
+    console.log("🔍 Update Product - req.params:", req.params);
+
     // Get existing product to handle file cleanup
     const [existingProduct] = await db
       .select()
