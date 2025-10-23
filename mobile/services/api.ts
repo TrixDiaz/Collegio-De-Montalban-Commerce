@@ -405,6 +405,26 @@ class ApiService {
     });
   }
 
+  // Categories methods
+  async getCategories(): Promise<Array<{ id: string, name: string }>> {
+    const response = await this.makeRequest<any>('/categories');
+    // Handle the nested data structure from the backend
+    if (response.data && response.data.categories) {
+      return response.data.categories;
+    }
+    return response.data || response;
+  }
+
+  // Brands methods
+  async getBrands(): Promise<Array<{ id: string, name: string }>> {
+    const response = await this.makeRequest<any>('/brands');
+    // Handle the nested data structure from the backend
+    if (response.data && response.data.brands) {
+      return response.data.brands;
+    }
+    return response.data || response;
+  }
+
   // Sales methods
   async getTodaySales(): Promise<any> {
     const response = await this.makeRequest<any>('/sales/today/summary');

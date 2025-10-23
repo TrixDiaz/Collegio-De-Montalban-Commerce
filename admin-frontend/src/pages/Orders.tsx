@@ -61,7 +61,7 @@ interface Order {
   subtotal: number;
   tax: number;
   discount: number;
-  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled' | 'completed';
   paymentMethod: 'cod' | 'gcash';
   items: Array<{
     id: string;
@@ -133,6 +133,8 @@ export const Orders = () => {
         return 'bg-green-100 text-green-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -200,6 +202,7 @@ export const Orders = () => {
                     <SelectItem value="shipped">Shipped</SelectItem>
                     <SelectItem value="delivered">Delivered</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -302,6 +305,11 @@ export const Orders = () => {
                             disabled={order.status === 'delivered'}
                           >
                             Mark as Delivered
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleStatusUpdate(order.id, 'completed')}
+                          >
+                            Mark as Completed
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleStatusUpdate(order.id, 'cancelled')}

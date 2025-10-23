@@ -88,7 +88,7 @@ export const sales = pgTable("sales", {
   discount: decimal("discount").default(0),
   total: decimal("total").notNull(),
   paymentMethod: text("payment_method").notNull(), // 'cod' or 'gcash'
-  status: text("status").notNull().default("pending"), // 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'
+  status: text("status").notNull().default("pending"), // 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled', 'completed'
   shippingAddress: text("shipping_address"), // JSON object with address details
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

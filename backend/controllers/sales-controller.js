@@ -263,6 +263,7 @@ export const updateSaleStatus = async (req, res) => {
       "shipped",
       "delivered",
       "cancelled",
+      "completed",
     ];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
@@ -301,6 +302,7 @@ export const updateSaleStatus = async (req, res) => {
       shipped: "Your order has been shipped and is on its way",
       delivered: "Your order has been delivered successfully",
       cancelled: "Your order has been cancelled",
+      completed: "Your order has been completed successfully",
     };
 
     const notificationTitle = `Order Status Update - ${

@@ -348,6 +348,7 @@ const updateOrderStatus = async (req, res, next) => {
       "shipped",
       "delivered",
       "cancelled",
+      "completed",
     ];
 
     if (!validStatuses.includes(status)) {

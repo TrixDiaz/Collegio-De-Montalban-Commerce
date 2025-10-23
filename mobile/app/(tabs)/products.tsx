@@ -12,7 +12,11 @@ import {
     Image,
     Modal,
     SafeAreaView,
+    KeyboardAvoidingView,
+    Platform,
+    FlatList,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { apiService, Product, ProductsResponse } from '@/services/api';
 
 export default function ProductsScreen() {
@@ -26,14 +30,47 @@ export default function ProductsScreen() {
     const [ showProductModal, setShowProductModal ] = useState(false);
     const [ showCreateModal, setShowCreateModal ] = useState(false);
     const [ showEditModal, setShowEditModal ] = useState(false);
+    const [ isSubmitting, setIsSubmitting ] = useState(false);
+    const [ categories, setCategories ] = useState<Array<{ id: string, name: string }>>([]);
+    const [ brands, setBrands ] = useState<Array<{ id: string, name: string }>>([]);
+    const [ createProductData, setCreateProductData ] = useState({
+        name: '',
+        description: '',
+        price: '',
+        stock: '',
+        categoryId: '',
+        brandId: '',
+        discount: false,
+        discountPrice: '',
+        isNew: true,
+        isBestSeller: false,
+        isTopRated: false,
+        isOnSale: false,
+        isTrending: false,
+        isHot: false,
+        isFeatured: false,
+    });
+    const [ createThumbnail, setCreateThumbnail ] = useState<string | null>(null);
+    const [ createImages, setCreateImages ] = useState<string[]>([]);
     const [ editProductData, setEditProductData ] = useState({
         name: '',
         description: '',
         price: '',
         stock: '',
-        category: '',
-        brand: ''
+        categoryId: '',
+        brandId: '',
+        discount: false,
+        discountPrice: '',
+        isNew: true,
+        isBestSeller: false,
+        isTopRated: false,
+        isOnSale: false,
+        isTrending: false,
+        isHot: false,
+        isFeatured: false,
     });
+    const [ editThumbnail, setEditThumbnail ] = useState<string | null>(null);
+    const [ editImages, setEditImages ] = useState<string[]>([]);
 
     const fetchProducts = async () => {
         try {
@@ -49,9 +86,91 @@ export default function ProductsScreen() {
         }
     };
 
+    const fetchCategories = async () => {
+        try {
+            const response = await apiService.getCategories();
+            setCategories(response || []);
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    };
+
+    const fetchBrands = async () => {
+        try {
+            const response = await apiService.getBrands();
+            setBrands(response || []);
+        } catch (error) {
+            console.error('Error fetching brands:', error);
+        }
+    };
+
     useEffect(() => {
         fetchProducts();
+        fetchCategories();
+        fetchBrands();
     }, [ page, searchTerm ]);
+
+    const pickThumbnail = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [ 1, 1 ],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            setCreateThumbnail(result.assets[ 0 ].uri);
+        }
+    };
+
+    const pickImages = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsMultipleSelection: true,
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            const newImages = result.assets.map(asset => asset.uri);
+            setCreateImages([ ...createImages, ...newImages ]);
+        }
+    };
+
+    const removeImage = (index: number) => {
+        const newImages = createImages.filter((_, i) => i !== index);
+        setCreateImages(newImages);
+    };
+
+    const pickEditThumbnail = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [ 1, 1 ],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            setEditThumbnail(result.assets[ 0 ].uri);
+        }
+    };
+
+    const pickEditImages = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsMultipleSelection: true,
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            const newImages = result.assets.map(asset => asset.uri);
+            setEditImages([ ...editImages, ...newImages ]);
+        }
+    };
+
+    const removeEditImage = (index: number) => {
+        const newImages = editImages.filter((_, i) => i !== index);
+        setEditImages(newImages);
+    };
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -97,30 +216,164 @@ export default function ProductsScreen() {
             description: product.description,
             price: product.price,
             stock: product.stock.toString(),
-            category: product.category,
-            brand: product.brand
+            categoryId: product.categoryId,
+            brandId: product.brandId,
+            discount: product.discount,
+            discountPrice: product.discountPrice || '',
+            isNew: product.isNew,
+            isBestSeller: product.isBestSeller,
+            isTopRated: product.isTopRated,
+            isOnSale: product.isOnSale,
+            isTrending: product.isTrending,
+            isHot: product.isHot,
+            isFeatured: product.isFeatured,
         });
+        setEditThumbnail(product.thumbnail ? apiService.getImageUrl(product.thumbnail) : null);
+        setEditImages(product.images || []);
         setShowEditModal(true);
     };
 
-    const handleSaveEdit = async () => {
-        if (!selectedProduct || !editProductData.name.trim()) {
-            Alert.alert('Error', 'Please enter a valid product name');
+    const resetCreateForm = () => {
+        setCreateProductData({
+            name: '',
+            description: '',
+            price: '',
+            stock: '',
+            categoryId: '',
+            brandId: '',
+            discount: false,
+            discountPrice: '',
+            isNew: true,
+            isBestSeller: false,
+            isTopRated: false,
+            isOnSale: false,
+            isTrending: false,
+            isHot: false,
+            isFeatured: false,
+        });
+        setCreateThumbnail(null);
+        setCreateImages([]);
+    };
+
+    const handleCreateProduct = async () => {
+        if (!createProductData.name || !createProductData.price || !createProductData.stock || !createProductData.categoryId || !createProductData.brandId) {
+            Alert.alert('Error', 'Please fill in all required fields');
             return;
         }
 
+        setIsSubmitting(true);
         try {
-            // Note: This would need to be implemented with proper FormData
-            Alert.alert('Info', 'Product edit functionality would be implemented here');
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('name', createProductData.name);
+            formData.append('description', createProductData.description);
+            formData.append('price', createProductData.price);
+            formData.append('stock', createProductData.stock);
+            formData.append('categoryId', createProductData.categoryId);
+            formData.append('brandId', createProductData.brandId);
+            formData.append('discount', createProductData.discount.toString());
+            if (createProductData.discountPrice) {
+                formData.append('discountPrice', createProductData.discountPrice);
+            }
+            formData.append('isNew', createProductData.isNew.toString());
+            formData.append('isBestSeller', createProductData.isBestSeller.toString());
+            formData.append('isTopRated', createProductData.isTopRated.toString());
+            formData.append('isOnSale', createProductData.isOnSale.toString());
+            formData.append('isTrending', createProductData.isTrending.toString());
+            formData.append('isHot', createProductData.isHot.toString());
+            formData.append('isFeatured', createProductData.isFeatured.toString());
+
+            // Add thumbnail if selected
+            if (createThumbnail) {
+                formData.append('thumbnail', {
+                    uri: createThumbnail,
+                    type: 'image/jpeg',
+                    name: 'thumbnail.jpg',
+                } as any);
+            }
+
+            // Add images if selected
+            createImages.forEach((imageUri, index) => {
+                formData.append('images', {
+                    uri: imageUri,
+                    type: 'image/jpeg',
+                    name: `image_${index}.jpg`,
+                } as any);
+            });
+
+            await apiService.createProduct(formData);
+            Alert.alert('Success', 'Product created successfully');
+            setShowCreateModal(false);
+            resetCreateForm();
+            fetchProducts();
+        } catch (error) {
+            console.error('Error creating product:', error);
+            Alert.alert('Error', 'Failed to create product');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleUpdateProduct = async () => {
+        if (!selectedProduct || !editProductData.name || !editProductData.price || !editProductData.stock || !editProductData.categoryId || !editProductData.brandId) {
+            Alert.alert('Error', 'Please fill in all required fields');
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('name', editProductData.name);
+            formData.append('description', editProductData.description);
+            formData.append('price', editProductData.price);
+            formData.append('stock', editProductData.stock);
+            formData.append('categoryId', editProductData.categoryId);
+            formData.append('brandId', editProductData.brandId);
+            formData.append('discount', editProductData.discount.toString());
+            if (editProductData.discountPrice) {
+                formData.append('discountPrice', editProductData.discountPrice);
+            }
+            formData.append('isNew', editProductData.isNew.toString());
+            formData.append('isBestSeller', editProductData.isBestSeller.toString());
+            formData.append('isTopRated', editProductData.isTopRated.toString());
+            formData.append('isOnSale', editProductData.isOnSale.toString());
+            formData.append('isTrending', editProductData.isTrending.toString());
+            formData.append('isHot', editProductData.isHot.toString());
+            formData.append('isFeatured', editProductData.isFeatured.toString());
+
+            // Add thumbnail if selected
+            if (editThumbnail) {
+                formData.append('thumbnail', {
+                    uri: editThumbnail,
+                    type: 'image/jpeg',
+                    name: 'thumbnail.jpg',
+                } as any);
+            }
+
+            // Add images if selected
+            editImages.forEach((imageUri, index) => {
+                formData.append('images', {
+                    uri: imageUri,
+                    type: 'image/jpeg',
+                    name: `image_${index}.jpg`,
+                } as any);
+            });
+
+            await apiService.updateProduct(selectedProduct.id, formData);
+            Alert.alert('Success', 'Product updated successfully');
             setShowEditModal(false);
             fetchProducts();
         } catch (error) {
             console.error('Error updating product:', error);
             Alert.alert('Error', 'Failed to update product');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     const handleAddProduct = () => {
+        resetCreateForm();
         setShowCreateModal(true);
     };
 
@@ -401,13 +654,13 @@ export default function ProductsScreen() {
                 </View>
             </Modal>
 
-            {/* Create Product Modal - Placeholder */}
+            {/* Create Product Modal */}
             <Modal
                 visible={showCreateModal}
                 animationType="slide"
                 presentationStyle="pageSheet"
             >
-                <View style={styles.modalContainer}>
+                <SafeAreaView style={styles.modalContainer}>
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>Add New Product</Text>
                         <TouchableOpacity
@@ -418,15 +671,593 @@ export default function ProductsScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    <View style={styles.modalContent}>
-                        <Text style={styles.comingSoonText}>
-                            Product creation form will be implemented here.
-                        </Text>
-                        <Text style={styles.comingSoonSubtext}>
-                            This will include form fields for name, description, price, images, etc.
-                        </Text>
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                        style={styles.modalContent}
+                    >
+                        <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
+                            {/* Basic Information */}
+                            <View style={styles.formSection}>
+                                <Text style={styles.sectionTitle}>Basic Information</Text>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Product Name *</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={createProductData.name}
+                                        onChangeText={(text) => setCreateProductData({ ...createProductData, name: text })}
+                                        placeholder="Enter product name"
+                                    />
+                                </View>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Description</Text>
+                                    <TextInput
+                                        style={[ styles.input, styles.textArea ]}
+                                        value={createProductData.description}
+                                        onChangeText={(text) => setCreateProductData({ ...createProductData, description: text })}
+                                        placeholder="Enter product description"
+                                        multiline
+                                        numberOfLines={3}
+                                    />
+                                </View>
+
+                                <View style={styles.row}>
+                                    <View style={[ styles.inputGroup, styles.halfWidth ]}>
+                                        <Text style={styles.label}>Price *</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            value={createProductData.price}
+                                            onChangeText={(text) => setCreateProductData({ ...createProductData, price: text })}
+                                            placeholder="0.00"
+                                            keyboardType="numeric"
+                                        />
+                                    </View>
+
+                                    <View style={[ styles.inputGroup, styles.halfWidth ]}>
+                                        <Text style={styles.label}>Stock *</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            value={createProductData.stock}
+                                            onChangeText={(text) => setCreateProductData({ ...createProductData, stock: text })}
+                                            placeholder="0"
+                                            keyboardType="numeric"
+                                        />
+                                    </View>
+                                </View>
+
+                                <View style={styles.row}>
+                                    <View style={[ styles.inputGroup, styles.halfWidth ]}>
+                                        <Text style={styles.label}>Category *</Text>
+                                        <TouchableOpacity
+                                            style={styles.dropdown}
+                                            onPress={() => {
+                                                // Show category picker
+                                                Alert.alert(
+                                                    'Select Category',
+                                                    '',
+                                                    categories.map(cat => ({
+                                                        text: cat.name,
+                                                        onPress: () => setCreateProductData({ ...createProductData, categoryId: cat.id })
+                                                    }))
+                                                );
+                                            }}
+                                        >
+                                            <Text style={styles.dropdownText}>
+                                                {createProductData.categoryId
+                                                    ? categories.find(c => c.id === createProductData.categoryId)?.name || 'Select Category'
+                                                    : 'Select Category'
+                                                }
+                                            </Text>
+                                            <Text style={styles.dropdownArrow}>▼</Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <View style={[ styles.inputGroup, styles.halfWidth ]}>
+                                        <Text style={styles.label}>Brand *</Text>
+                                        <TouchableOpacity
+                                            style={styles.dropdown}
+                                            onPress={() => {
+                                                // Show brand picker
+                                                Alert.alert(
+                                                    'Select Brand',
+                                                    '',
+                                                    brands.map(brand => ({
+                                                        text: brand.name,
+                                                        onPress: () => setCreateProductData({ ...createProductData, brandId: brand.id })
+                                                    }))
+                                                );
+                                            }}
+                                        >
+                                            <Text style={styles.dropdownText}>
+                                                {createProductData.brandId
+                                                    ? brands.find(b => b.id === createProductData.brandId)?.name || 'Select Brand'
+                                                    : 'Select Brand'
+                                                }
+                                            </Text>
+                                            <Text style={styles.dropdownArrow}>▼</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </View>
+
+                            {/* Discount Information */}
+                            <View style={styles.formSection}>
+                                <Text style={styles.sectionTitle}>Discount Information</Text>
+
+                                <View style={styles.checkboxGroup}>
+                                    <TouchableOpacity
+                                        style={styles.checkboxRow}
+                                        onPress={() => setCreateProductData({ ...createProductData, discount: !createProductData.discount })}
+                                    >
+                                        <View style={[ styles.checkbox, createProductData.discount && styles.checkboxChecked ]}>
+                                            {createProductData.discount && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.checkboxLabel}>Enable Discount</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                {createProductData.discount && (
+                                    <View style={styles.inputGroup}>
+                                        <Text style={styles.label}>Discount Price</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            value={createProductData.discountPrice}
+                                            onChangeText={(text) => setCreateProductData({ ...createProductData, discountPrice: text })}
+                                            placeholder="0.00"
+                                            keyboardType="numeric"
+                                        />
+                                    </View>
+                                )}
+                            </View>
+
+                            {/* Image Selection */}
+                            <View style={styles.formSection}>
+                                <Text style={styles.sectionTitle}>Product Images</Text>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Thumbnail Image</Text>
+                                    <TouchableOpacity style={styles.imagePicker} onPress={pickThumbnail}>
+                                        {createThumbnail ? (
+                                            <Image source={{ uri: createThumbnail }} style={styles.selectedImage} />
+                                        ) : (
+                                            <View style={styles.imagePlaceholder}>
+                                                <Text style={styles.imagePlaceholderText}>+ Add Thumbnail</Text>
+                                            </View>
+                                        )}
+                                    </TouchableOpacity>
+                                </View>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Product Images</Text>
+                                    <TouchableOpacity style={styles.imagePicker} onPress={pickImages}>
+                                        <View style={styles.imagePlaceholder}>
+                                            <Text style={styles.imagePlaceholderText}>+ Add Images</Text>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    {createImages.length > 0 && (
+                                        <View style={styles.imageList}>
+                                            {createImages.map((image, index) => (
+                                                <View key={index} style={styles.imageItem}>
+                                                    <Image source={{ uri: image }} style={styles.selectedImage} />
+                                                    <TouchableOpacity
+                                                        style={styles.removeImageButton}
+                                                        onPress={() => removeImage(index)}
+                                                    >
+                                                        <Text style={styles.removeImageText}>×</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+
+                            {/* Product Flags */}
+                            <View style={styles.formSection}>
+                                <Text style={styles.sectionTitle}>Product Flags</Text>
+
+                                <View style={styles.flagsGrid}>
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setCreateProductData({ ...createProductData, isNew: !createProductData.isNew })}
+                                    >
+                                        <View style={[ styles.checkbox, createProductData.isNew && styles.checkboxChecked ]}>
+                                            {createProductData.isNew && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>New</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setCreateProductData({ ...createProductData, isBestSeller: !createProductData.isBestSeller })}
+                                    >
+                                        <View style={[ styles.checkbox, createProductData.isBestSeller && styles.checkboxChecked ]}>
+                                            {createProductData.isBestSeller && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>Best Seller</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setCreateProductData({ ...createProductData, isTopRated: !createProductData.isTopRated })}
+                                    >
+                                        <View style={[ styles.checkbox, createProductData.isTopRated && styles.checkboxChecked ]}>
+                                            {createProductData.isTopRated && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>Top Rated</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setCreateProductData({ ...createProductData, isOnSale: !createProductData.isOnSale })}
+                                    >
+                                        <View style={[ styles.checkbox, createProductData.isOnSale && styles.checkboxChecked ]}>
+                                            {createProductData.isOnSale && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>On Sale</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setCreateProductData({ ...createProductData, isTrending: !createProductData.isTrending })}
+                                    >
+                                        <View style={[ styles.checkbox, createProductData.isTrending && styles.checkboxChecked ]}>
+                                            {createProductData.isTrending && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>Trending</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setCreateProductData({ ...createProductData, isHot: !createProductData.isHot })}
+                                    >
+                                        <View style={[ styles.checkbox, createProductData.isHot && styles.checkboxChecked ]}>
+                                            {createProductData.isHot && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>Hot</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setCreateProductData({ ...createProductData, isFeatured: !createProductData.isFeatured })}
+                                    >
+                                        <View style={[ styles.checkbox, createProductData.isFeatured && styles.checkboxChecked ]}>
+                                            {createProductData.isFeatured && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>Featured</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            {/* Action Buttons */}
+                            <View style={styles.formActions}>
+                                <TouchableOpacity
+                                    style={[ styles.button, styles.cancelButton ]}
+                                    onPress={() => setShowCreateModal(false)}
+                                >
+                                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[ styles.button, styles.submitButton, isSubmitting && styles.submitButtonDisabled ]}
+                                    onPress={handleCreateProduct}
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? (
+                                        <ActivityIndicator color="white" size="small" />
+                                    ) : (
+                                        <Text style={styles.submitButtonText}>Create Product</Text>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+                        </ScrollView>
+                    </KeyboardAvoidingView>
+                </SafeAreaView>
+            </Modal>
+
+            {/* Edit Product Modal */}
+            <Modal
+                visible={showEditModal}
+                animationType="slide"
+                presentationStyle="pageSheet"
+            >
+                <SafeAreaView style={styles.modalContainer}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>Edit Product</Text>
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setShowEditModal(false)}
+                        >
+                            <Text style={styles.closeButtonText}>✕</Text>
+                        </TouchableOpacity>
                     </View>
-                </View>
+
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                        style={styles.modalContent}
+                    >
+                        <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
+                            {/* Basic Information */}
+                            <View style={styles.formSection}>
+                                <Text style={styles.sectionTitle}>Basic Information</Text>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Product Name *</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={editProductData.name}
+                                        onChangeText={(text) => setEditProductData({ ...editProductData, name: text })}
+                                        placeholder="Enter product name"
+                                    />
+                                </View>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Description</Text>
+                                    <TextInput
+                                        style={[ styles.input, styles.textArea ]}
+                                        value={editProductData.description}
+                                        onChangeText={(text) => setEditProductData({ ...editProductData, description: text })}
+                                        placeholder="Enter product description"
+                                        multiline
+                                        numberOfLines={3}
+                                    />
+                                </View>
+
+                                <View style={styles.row}>
+                                    <View style={[ styles.inputGroup, styles.halfWidth ]}>
+                                        <Text style={styles.label}>Price *</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            value={editProductData.price}
+                                            onChangeText={(text) => setEditProductData({ ...editProductData, price: text })}
+                                            placeholder="0.00"
+                                            keyboardType="numeric"
+                                        />
+                                    </View>
+
+                                    <View style={[ styles.inputGroup, styles.halfWidth ]}>
+                                        <Text style={styles.label}>Stock *</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            value={editProductData.stock}
+                                            onChangeText={(text) => setEditProductData({ ...editProductData, stock: text })}
+                                            placeholder="0"
+                                            keyboardType="numeric"
+                                        />
+                                    </View>
+                                </View>
+
+                                <View style={styles.row}>
+                                    <View style={[ styles.inputGroup, styles.halfWidth ]}>
+                                        <Text style={styles.label}>Category *</Text>
+                                        <TouchableOpacity
+                                            style={styles.dropdown}
+                                            onPress={() => {
+                                                // Show category picker
+                                                Alert.alert(
+                                                    'Select Category',
+                                                    '',
+                                                    categories.map(cat => ({
+                                                        text: cat.name,
+                                                        onPress: () => setEditProductData({ ...editProductData, categoryId: cat.id })
+                                                    }))
+                                                );
+                                            }}
+                                        >
+                                            <Text style={styles.dropdownText}>
+                                                {editProductData.categoryId
+                                                    ? categories.find(c => c.id === editProductData.categoryId)?.name || 'Select Category'
+                                                    : 'Select Category'
+                                                }
+                                            </Text>
+                                            <Text style={styles.dropdownArrow}>▼</Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <View style={[ styles.inputGroup, styles.halfWidth ]}>
+                                        <Text style={styles.label}>Brand *</Text>
+                                        <TouchableOpacity
+                                            style={styles.dropdown}
+                                            onPress={() => {
+                                                // Show brand picker
+                                                Alert.alert(
+                                                    'Select Brand',
+                                                    '',
+                                                    brands.map(brand => ({
+                                                        text: brand.name,
+                                                        onPress: () => setEditProductData({ ...editProductData, brandId: brand.id })
+                                                    }))
+                                                );
+                                            }}
+                                        >
+                                            <Text style={styles.dropdownText}>
+                                                {editProductData.brandId
+                                                    ? brands.find(b => b.id === editProductData.brandId)?.name || 'Select Brand'
+                                                    : 'Select Brand'
+                                                }
+                                            </Text>
+                                            <Text style={styles.dropdownArrow}>▼</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </View>
+
+                            {/* Discount Information */}
+                            <View style={styles.formSection}>
+                                <Text style={styles.sectionTitle}>Discount Information</Text>
+
+                                <View style={styles.checkboxGroup}>
+                                    <TouchableOpacity
+                                        style={styles.checkboxRow}
+                                        onPress={() => setEditProductData({ ...editProductData, discount: !editProductData.discount })}
+                                    >
+                                        <View style={[ styles.checkbox, editProductData.discount && styles.checkboxChecked ]}>
+                                            {editProductData.discount && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.checkboxLabel}>Enable Discount</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                {editProductData.discount && (
+                                    <View style={styles.inputGroup}>
+                                        <Text style={styles.label}>Discount Price</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            value={editProductData.discountPrice}
+                                            onChangeText={(text) => setEditProductData({ ...editProductData, discountPrice: text })}
+                                            placeholder="0.00"
+                                            keyboardType="numeric"
+                                        />
+                                    </View>
+                                )}
+                            </View>
+
+                            {/* Image Selection */}
+                            <View style={styles.formSection}>
+                                <Text style={styles.sectionTitle}>Product Images</Text>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Thumbnail Image</Text>
+                                    <TouchableOpacity style={styles.imagePicker} onPress={pickEditThumbnail}>
+                                        {editThumbnail ? (
+                                            <Image source={{ uri: editThumbnail }} style={styles.selectedImage} />
+                                        ) : (
+                                            <View style={styles.imagePlaceholder}>
+                                                <Text style={styles.imagePlaceholderText}>+ Add Thumbnail</Text>
+                                            </View>
+                                        )}
+                                    </TouchableOpacity>
+                                </View>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Product Images</Text>
+                                    <TouchableOpacity style={styles.imagePicker} onPress={pickEditImages}>
+                                        <View style={styles.imagePlaceholder}>
+                                            <Text style={styles.imagePlaceholderText}>+ Add Images</Text>
+                                        </View>
+                                    </TouchableOpacity>
+
+                                    {editImages.length > 0 && (
+                                        <View style={styles.imageList}>
+                                            {editImages.map((image, index) => (
+                                                <View key={index} style={styles.imageItem}>
+                                                    <Image source={{ uri: image }} style={styles.selectedImage} />
+                                                    <TouchableOpacity
+                                                        style={styles.removeImageButton}
+                                                        onPress={() => removeEditImage(index)}
+                                                    >
+                                                        <Text style={styles.removeImageText}>×</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+
+                            {/* Product Flags */}
+                            <View style={styles.formSection}>
+                                <Text style={styles.sectionTitle}>Product Flags</Text>
+
+                                <View style={styles.flagsGrid}>
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setEditProductData({ ...editProductData, isNew: !editProductData.isNew })}
+                                    >
+                                        <View style={[ styles.checkbox, editProductData.isNew && styles.checkboxChecked ]}>
+                                            {editProductData.isNew && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>New</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setEditProductData({ ...editProductData, isBestSeller: !editProductData.isBestSeller })}
+                                    >
+                                        <View style={[ styles.checkbox, editProductData.isBestSeller && styles.checkboxChecked ]}>
+                                            {editProductData.isBestSeller && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>Best Seller</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setEditProductData({ ...editProductData, isTopRated: !editProductData.isTopRated })}
+                                    >
+                                        <View style={[ styles.checkbox, editProductData.isTopRated && styles.checkboxChecked ]}>
+                                            {editProductData.isTopRated && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>Top Rated</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setEditProductData({ ...editProductData, isOnSale: !editProductData.isOnSale })}
+                                    >
+                                        <View style={[ styles.checkbox, editProductData.isOnSale && styles.checkboxChecked ]}>
+                                            {editProductData.isOnSale && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>On Sale</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setEditProductData({ ...editProductData, isTrending: !editProductData.isTrending })}
+                                    >
+                                        <View style={[ styles.checkbox, editProductData.isTrending && styles.checkboxChecked ]}>
+                                            {editProductData.isTrending && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>Trending</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setEditProductData({ ...editProductData, isHot: !editProductData.isHot })}
+                                    >
+                                        <View style={[ styles.checkbox, editProductData.isHot && styles.checkboxChecked ]}>
+                                            {editProductData.isHot && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>Hot</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={styles.flagItem}
+                                        onPress={() => setEditProductData({ ...editProductData, isFeatured: !editProductData.isFeatured })}
+                                    >
+                                        <View style={[ styles.checkbox, editProductData.isFeatured && styles.checkboxChecked ]}>
+                                            {editProductData.isFeatured && <Text style={styles.checkmark}>✓</Text>}
+                                        </View>
+                                        <Text style={styles.flagLabel}>Featured</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            {/* Action Buttons */}
+                            <View style={styles.formActions}>
+                                <TouchableOpacity
+                                    style={[ styles.button, styles.cancelButton ]}
+                                    onPress={() => setShowEditModal(false)}
+                                >
+                                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[ styles.button, styles.submitButton, isSubmitting && styles.submitButtonDisabled ]}
+                                    onPress={handleUpdateProduct}
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? (
+                                        <ActivityIndicator color="white" size="small" />
+                                    ) : (
+                                        <Text style={styles.submitButtonText}>Update Product</Text>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+                        </ScrollView>
+                    </KeyboardAvoidingView>
+                </SafeAreaView>
             </Modal>
         </SafeAreaView>
     );
@@ -792,5 +1623,197 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#6b7280',
         textAlign: 'center',
+    },
+    // Form Styles
+    formContainer: {
+        flex: 1,
+        padding: 16,
+    },
+    formSection: {
+        marginBottom: 24,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1f2937',
+        marginBottom: 16,
+    },
+    inputGroup: {
+        marginBottom: 16,
+    },
+    label: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#374151',
+        marginBottom: 8,
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 16,
+        backgroundColor: '#ffffff',
+    },
+    textArea: {
+        height: 80,
+        textAlignVertical: 'top',
+    },
+    row: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    halfWidth: {
+        flex: 1,
+    },
+    checkboxGroup: {
+        marginBottom: 16,
+    },
+    checkboxRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    checkbox: {
+        width: 20,
+        height: 20,
+        borderWidth: 2,
+        borderColor: '#d1d5db',
+        borderRadius: 4,
+        marginRight: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    checkboxChecked: {
+        backgroundColor: '#3b82f6',
+        borderColor: '#3b82f6',
+    },
+    checkmark: {
+        color: '#ffffff',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    checkboxLabel: {
+        fontSize: 16,
+        color: '#374151',
+    },
+    flagsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    flagItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '45%',
+    },
+    flagLabel: {
+        fontSize: 14,
+        color: '#374151',
+        marginLeft: 8,
+    },
+    formActions: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 24,
+        paddingBottom: 20,
+    },
+    button: {
+        flex: 1,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    cancelButton: {
+        backgroundColor: '#f3f4f6',
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+    },
+    cancelButtonText: {
+        color: '#374151',
+        fontWeight: '600',
+        fontSize: 16,
+    },
+    submitButton: {
+        backgroundColor: '#3b82f6',
+    },
+    submitButtonDisabled: {
+        backgroundColor: '#9ca3af',
+    },
+    submitButtonText: {
+        color: '#ffffff',
+        fontWeight: '600',
+        fontSize: 16,
+    },
+    // Dropdown Styles
+    dropdown: {
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        borderRadius: 8,
+        padding: 12,
+        backgroundColor: '#ffffff',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    dropdownText: {
+        fontSize: 16,
+        color: '#374151',
+    },
+    dropdownArrow: {
+        fontSize: 12,
+        color: '#6b7280',
+    },
+    // Image Picker Styles
+    imagePicker: {
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        borderStyle: 'dashed',
+        borderRadius: 8,
+        padding: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f9fafb',
+    },
+    imagePlaceholder: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    imagePlaceholderText: {
+        fontSize: 16,
+        color: '#6b7280',
+        marginTop: 8,
+    },
+    selectedImage: {
+        width: 100,
+        height: 100,
+        borderRadius: 8,
+    },
+    imageList: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginTop: 12,
+    },
+    imageItem: {
+        position: 'relative',
+    },
+    removeImageButton: {
+        position: 'absolute',
+        top: -8,
+        right: -8,
+        backgroundColor: '#ef4444',
+        borderRadius: 12,
+        width: 24,
+        height: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    removeImageText: {
+        color: '#ffffff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
