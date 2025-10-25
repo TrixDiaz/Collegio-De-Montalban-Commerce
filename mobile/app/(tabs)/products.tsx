@@ -443,20 +443,20 @@ export default function ProductsScreen() {
                 </View>
             </View>
 
-            <View style={styles.productActions}>
+            {/*   <View style={styles.productActions}>
                 <TouchableOpacity
                     style={styles.actionButton}
                     onPress={() => handleProductPress(product)}
                 >
                     <Text style={styles.actionButtonText}>View</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
+               <TouchableOpacity
                     style={[ styles.actionButton, styles.deleteButton ]}
                     onPress={() => handleDeleteProduct(product)}
                 >
                     <Text style={[ styles.actionButtonText, styles.deleteButtonText ]}>Delete</Text>
-                </TouchableOpacity>
-            </View>
+                </TouchableOpacity> 
+            </View>  */ }
         </TouchableOpacity>
     );
 
@@ -505,12 +505,12 @@ export default function ProductsScreen() {
                         <Text style={styles.title}>Products</Text>
                         <Text style={styles.subtitle}>Manage your product inventory</Text>
                     </View>
-                    <TouchableOpacity
+                    {/*  <TouchableOpacity
                         style={styles.addButton}
                         onPress={handleAddProduct}
                     >
                         <Text style={styles.addButtonText}>+ Add Product</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity>  */ }
                 </View>
             </View>
 
@@ -532,12 +532,12 @@ export default function ProductsScreen() {
                 {products.length === 0 ? (
                     <View style={styles.emptyState}>
                         <Text style={styles.emptyStateText}>No products found</Text>
-                        <TouchableOpacity
+                        {/*  <TouchableOpacity
                             style={styles.emptyStateButton}
                             onPress={() => setShowCreateModal(true)}
                         >
                             <Text style={styles.emptyStateButtonText}>Add your first product</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity>  */ }
                     </View>
                 ) : (
                     <>
@@ -643,7 +643,7 @@ export default function ProductsScreen() {
                                 </View>
                             </ScrollView>
 
-                            <View style={styles.modalActions}>
+                            {/*    <View style={styles.modalActions}>
                                 <TouchableOpacity
                                     style={[ styles.modalActionButton, styles.editButton ]}
                                     onPress={() => {
@@ -663,7 +663,7 @@ export default function ProductsScreen() {
                                 >
                                     <Text style={styles.deleteButtonText}>🗑️ Delete</Text>
                                 </TouchableOpacity>
-                            </View>
+                            </View>  */}
                         </View>
                     )}
                 </View>

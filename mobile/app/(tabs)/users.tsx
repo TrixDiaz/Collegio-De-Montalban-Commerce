@@ -224,7 +224,7 @@ export default function UsersScreen() {
                 </Text>
             </View>
 
-            <View style={styles.userActions}>
+            {/*  <View style={styles.userActions}>
                 <TouchableOpacity
                     style={styles.actionButton}
                     onPress={() => handleUserPress(user)}
@@ -237,7 +237,7 @@ export default function UsersScreen() {
                 >
                     <Text style={[ styles.actionButtonText, styles.deleteButtonText ]}>Delete</Text>
                 </TouchableOpacity>
-            </View>
+            </View> */}
         </TouchableOpacity>
     );
 
@@ -286,12 +286,12 @@ export default function UsersScreen() {
                         <Text style={styles.title}>Users</Text>
                         <Text style={styles.subtitle}>Manage user accounts</Text>
                     </View>
-                    <TouchableOpacity
+                    {/*  <TouchableOpacity
                         style={styles.addButton}
                         onPress={handleAddUser}
                     >
                         <Text style={styles.addButtonText}>+ Add User</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity>  */ }
                 </View>
             </View>
 
@@ -404,7 +404,7 @@ export default function UsersScreen() {
                                     </View>
                                 </View>
 
-                                <View style={styles.modalActions}>
+                                {/*  <View style={styles.modalActions}>
                                     <TouchableOpacity
                                         style={styles.modalActionButton}
                                         onPress={() => {
@@ -426,7 +426,7 @@ export default function UsersScreen() {
                                             🗑️ Delete User
                                         </Text>
                                     </TouchableOpacity>
-                                </View>
+                                </View>  */ }
                             </View>
                         </ScrollView>
                     )}
@@ -535,7 +535,7 @@ export default function UsersScreen() {
                             />
                         </View>
 
-                        <View style={styles.modalActions}>
+                        {/*  <View style={styles.modalActions}>
                             <TouchableOpacity
                                 style={[ styles.modalActionButton, styles.cancelButton ]}
                                 onPress={() => setShowAddModal(false)}
@@ -554,7 +554,7 @@ export default function UsersScreen() {
                                     <Text style={styles.saveButtonText}>Add User</Text>
                                 )}
                             </TouchableOpacity>
-                        </View>
+                        </View>  */ }
                     </View>
                 </View>
             </Modal>
