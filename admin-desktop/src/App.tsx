@@ -20,7 +20,7 @@ function App() {
     <ThemeProvider defaultTheme="system" storageKey="admin-theme">
       <AuthProvider>
         <NotificationProvider>
-          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Router>
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/login" element={<LoginForm />} />

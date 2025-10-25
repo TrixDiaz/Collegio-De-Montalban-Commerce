@@ -394,7 +394,7 @@ export const Analytics = () => {
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {analytics.categoryDistribution.map((entry, index) => {
+                        {analytics.categoryDistribution.map((_, index) => {
                           const colors = [ '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#a4de6c', '#d0ed57', '#83a6ed', '#8dd1e1' ];
                           return <Cell key={`cell-${index}`} fill={colors[ index % colors.length ]} />;
                         })}
