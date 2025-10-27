@@ -72,7 +72,7 @@ const authorize = async (req, res, next) => {
   }
 };
 
-// Admin authentication middleware
+// Admin authentication middleware (now just regular auth without role checking)
 const authenticateAdmin = async (req, res, next) => {
   try {
     let token;
@@ -118,17 +118,8 @@ const authenticateAdmin = async (req, res, next) => {
       });
     }
 
-    // Check if user has admin or superadmin role
-    if (user[0].role !== "admin" && user[0].role !== "superadmin") {
-      console.log(
-        "Admin auth middleware - user is not admin or superadmin:",
-        user[0].role
-      );
-      return res.status(403).json({
-        success: false,
-        message: "Access denied. Admin or Superadmin role required.",
-      });
-    }
+    // No role checking - any authenticated user can access admin endpoints
+    console.log("Admin auth middleware - user authenticated:", user[0].email);
 
     // Attach the user to the request object
     req.user = user[0];
