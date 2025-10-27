@@ -21,7 +21,6 @@ interface User {
     isVerified: boolean;
     createdAt: string;
     updatedAt: string;
-    role?: string;
 }
 
 interface UsersResponse {
@@ -213,10 +212,6 @@ export default function UsersScreen() {
                             {user.isVerified ? 'Verified' : 'Unverified'}
                         </Text>
                     </View>
-
-                    {user.role && (
-                        <Text style={styles.userRole}>{user.role}</Text>
-                    )}
                 </View>
 
                 <Text style={styles.userDate}>
@@ -381,13 +376,6 @@ export default function UsersScreen() {
                                             </Text>
                                         </View>
                                     </View>
-
-                                    {selectedUser.role && (
-                                        <View style={styles.modalDetailRow}>
-                                            <Text style={styles.modalDetailLabel}>Role:</Text>
-                                            <Text style={styles.modalDetailValue}>{selectedUser.role}</Text>
-                                        </View>
-                                    )}
 
                                     <View style={styles.modalDetailRow}>
                                         <Text style={styles.modalDetailLabel}>Joined:</Text>
@@ -705,14 +693,6 @@ const styles = StyleSheet.create({
     statusText: {
         fontSize: 12,
         color: '#6b7280',
-    },
-    userRole: {
-        fontSize: 12,
-        color: '#3b82f6',
-        backgroundColor: '#dbeafe',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
     },
     userDate: {
         fontSize: 12,

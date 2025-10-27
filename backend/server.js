@@ -75,7 +75,7 @@ app.use("/api/v1/reviews", reviewRouter);
 app.use("/api/v1/admin/analytics", analyticsRouter);
 app.use("/api/v1/payments", paymentRouter);
 // Health check route
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.json({
     message: "Backend Authentication Server is running!",
     status: "healthy",

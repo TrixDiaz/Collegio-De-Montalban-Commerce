@@ -200,7 +200,7 @@ export default function ProductsScreen() {
         setShowProductModal(true);
     };
 
-    const handleDeleteProduct = (product: Product) => {
+    /* const handleDeleteProduct = (product: Product) => {
         Alert.alert(
             'Delete Product',
             `Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
@@ -221,9 +221,9 @@ export default function ProductsScreen() {
                 },
             ]
         );
-    };
+    }; */
 
-    const handleEditProduct = (product: Product) => {
+    /* const handleEditProduct = (product: Product) => {
         setEditProductData({
             name: product.name,
             description: product.description,
@@ -244,7 +244,7 @@ export default function ProductsScreen() {
         setEditThumbnail(product.thumbnail ? apiService.getImageUrl(product.thumbnail) : null);
         setEditImages(product.images ? product.images.map(img => apiService.getImageUrl(img)) : []);
         setShowEditModal(true);
-    };
+    }; */
 
     const resetCreateForm = () => {
         setCreateProductData({

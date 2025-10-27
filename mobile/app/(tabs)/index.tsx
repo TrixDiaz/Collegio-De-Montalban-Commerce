@@ -118,9 +118,17 @@ export default function DashboardScreen() {
             <Text style={styles.greeting}>Welcome back!</Text>
             <Text style={styles.userName}>{user?.name || 'Admin'}</Text>
           </View>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.settingsButton}
+              onPress={() => router.push('/server-config')}
+            >
+              <Text style={styles.settingsText}>⚙️</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <Text style={styles.logoutText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.statsGrid}>
@@ -213,6 +221,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1f2937',
     marginTop: 4,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  settingsButton: {
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  settingsText: {
+    fontSize: 20,
   },
   logoutButton: {
     backgroundColor: '#ef4444',

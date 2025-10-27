@@ -1,8 +1,8 @@
-import { GLOBAL_API_BASE_URL } from '@/config/api';
+import { getGlobalApiUrl } from '@/config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Use the global API base URL
-const BASE_URL = GLOBAL_API_BASE_URL;
+// Get the API base URL dynamically
+const getBaseUrl = () => getGlobalApiUrl();
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -143,7 +143,7 @@ class ApiService {
   }
 
   constructor() {
-    this.baseURL = BASE_URL;
+    this.baseURL = getBaseUrl();
     // Load tokens asynchronously
     this.initializeTokens();
   }
@@ -192,6 +192,8 @@ class ApiService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
+    // Update baseURL dynamically in case it changed
+    this.baseURL = getBaseUrl();
     const url = `${this.baseURL}${endpoint}`;
 
     const headers: Record<string, string> = {
@@ -304,7 +306,8 @@ class ApiService {
 
   // Health check method (public endpoint)
   async healthCheck(): Promise<{ message: string; status: string; timestamp: string }> {
-    const response = await fetch(`${this.baseURL.replace('/api/v1', '')}/`, {
+    const currentBaseUrl = getBaseUrl();
+    const response = await fetch(`${currentBaseUrl.replace('/api/v1', '')}/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -321,24 +324,26 @@ class ApiService {
   // Connection test method
   async testConnection(): Promise<{ success: boolean; message: string; url: string }> {
     try {
-      console.log('🔍 Testing connection to:', this.baseURL);
+      const currentBaseUrl = getBaseUrl();
+      console.log('🔍 Testing connection to:', currentBaseUrl);
 
       // Test basic health check
-      const healthResponse = await fetch(`${this.baseURL.replace('/api/v1', '')}/`);
+      const healthResponse = await fetch(`${currentBaseUrl.replace('/api/v1', '')}/`);
       const healthData = await healthResponse.json();
       console.log('✅ Health check successful:', healthData);
 
       return {
         success: true,
         message: 'Connection successful',
-        url: this.baseURL
+        url: currentBaseUrl
       };
     } catch (error) {
+      const currentBaseUrl = getBaseUrl();
       console.log('❌ Connection failed:', error);
       return {
         success: false,
         message: `Connection failed: ${(error as any).message}`,
-        url: this.baseURL
+        url: currentBaseUrl
       };
     }
   }
@@ -387,6 +392,7 @@ class ApiService {
   }
 
   async createProduct(formData: FormData): Promise<Product> {
+    this.baseURL = getBaseUrl(); // Update baseURL
     const url = `${this.baseURL}/products`;
 
     const headers: Record<string, string> = {};
@@ -417,6 +423,7 @@ class ApiService {
   }
 
   async updateProduct(id: string, formData: FormData): Promise<Product> {
+    this.baseURL = getBaseUrl(); // Update baseURL
     const url = `${this.baseURL}/products/${id}`;
 
     const headers: Record<string, string> = {};
@@ -572,8 +579,9 @@ class ApiService {
       cleanPath = normalizedPath.substring(8);
     }
 
-    // Use the global base URL for image serving
-    const baseUrl = GLOBAL_API_BASE_URL.replace('/api/v1', '');
+    // Use the current base URL for image serving
+    const currentBaseUrl = getBaseUrl();
+    const baseUrl = currentBaseUrl.replace('/api/v1', '');
     return `${baseUrl}/uploads/${cleanPath}`.replace(/\/+/g, '/').replace('http:/', 'http://');
   }
 }

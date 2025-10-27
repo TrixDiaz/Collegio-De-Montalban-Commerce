@@ -1,16 +1,22 @@
 // Global API Configuration
-// Change this URL to update the backend server for the entire mobile app
-export const GLOBAL_API_BASE_URL = 'http://192.168.1.64:5000/api/v1';
+// This will be dynamically set by the user in the app
+let GLOBAL_API_BASE_URL = 'http://192.168.1.21:3001/api/v1';
+
+// Setter for the API URL (called after user configures it)
+export const setGlobalApiUrl = (url: string) => {
+    GLOBAL_API_BASE_URL = url;
+};
+
+// Getter for the API URL
+export const getGlobalApiUrl = () => {
+    return GLOBAL_API_BASE_URL;
+};
+
+// Export for backward compatibility
+export { GLOBAL_API_BASE_URL };
 
 // API Configuration
 export const API_CONFIG = {
-    // Use the global base URL
-    BASE_URL: GLOBAL_API_BASE_URL,
-
-    // Alternative URLs for different environments (uncomment as needed)
-    // BASE_URL: 'http://localhost:5000/api/v1', // For localhost development
-    // BASE_URL: 'https://your-backend-domain.com/api/v1', // For production
-
     // Request timeout in milliseconds
     TIMEOUT: 10000,
 
@@ -21,18 +27,16 @@ export const API_CONFIG = {
 
 // Helper function to get the correct API URL
 export const getApiUrl = () => {
-    console.log('🔧 getApiUrl called, API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+    console.log('🔧 getApiUrl called, GLOBAL_API_BASE_URL:', GLOBAL_API_BASE_URL);
     console.log('🔧 __DEV__:', __DEV__);
 
     // In development, you might want to use your computer's IP address
     // instead of localhost for testing on physical devices
     if (__DEV__) {
-        // Uncomment and replace with your computer's IP address for device testing
-        // return 'http://192.168.1.100:5000/api';
-        console.log('🔧 Returning API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
-        return API_CONFIG.BASE_URL;
+        console.log('🔧 Returning GLOBAL_API_BASE_URL:', GLOBAL_API_BASE_URL);
+        return GLOBAL_API_BASE_URL;
     }
 
-    console.log('🔧 Returning API_CONFIG.BASE_URL (production):', API_CONFIG.BASE_URL);
-    return API_CONFIG.BASE_URL;
+    console.log('🔧 Returning GLOBAL_API_BASE_URL (production):', GLOBAL_API_BASE_URL);
+    return GLOBAL_API_BASE_URL;
 };
