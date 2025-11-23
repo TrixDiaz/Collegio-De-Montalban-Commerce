@@ -17,7 +17,6 @@ import {
 import React from "react";
 import {
     UserCircle,
-    CreditCard,
     Package,
     Clock,
     CheckCircle,

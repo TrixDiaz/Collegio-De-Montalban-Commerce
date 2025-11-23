@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, ArrowLeft, RefreshCw, ShoppingBag, Mail, User } from 'lucide-react';
+import { AlertCircle, ArrowLeft, RefreshCw, Mail, User } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { apiService } from '@/services/api';
 import { toast } from 'sonner';
