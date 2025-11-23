@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3001/api/v1';
+const API_BASE_URL = 'http://localhost:5000/api/v1';
 
 export interface Product {
     id: string;
@@ -472,6 +472,20 @@ class ApiService {
 
     async getCheckoutSessionStatus(id: string) {
         return this.requestWithAuth(`/payments/checkout/${id}`);
+    }
+
+    // Contact endpoints
+    async submitContactForm(data: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        subject: string;
+        message: string;
+    }) {
+        return this.request('/contact', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
     }
 }
 

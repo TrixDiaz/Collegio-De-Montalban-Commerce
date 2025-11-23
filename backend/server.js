@@ -19,6 +19,7 @@ import salesRouter from "./routes/sales-routes.js";
 import reviewRouter from "./routes/review-routes.js";
 import analyticsRouter from "./routes/analytics-routes.js";
 import paymentRouter from "./routes/payment-routes.js";
+import {contactRouter} from "./routes/contact-routes.js";
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use("/api/v1/sales", salesRouter);
 app.use("/api/v1/reviews", reviewRouter);
 app.use("/api/v1/admin/analytics", analyticsRouter);
 app.use("/api/v1/payments", paymentRouter);
+app.use("/api/v1/contact", contactRouter);
 // Health check route
 app.get("/", (_req, res) => {
   res.json({

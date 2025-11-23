@@ -8,7 +8,7 @@ const createTestUser = async () => {
     console.log("Creating test user...");
 
     // Use a proper UUID for the test user
-    const testUserId = "550e8400-e29b-41d4-a716-446655440000"; // Fixed UUID for test user
+    const testUserId = uuidv4(); // Fixed UUID for test user
 
     // Check if test user already exists
     const existingUser = await db
@@ -27,8 +27,8 @@ const createTestUser = async () => {
       .insert(users)
       .values({
         id: testUserId,
-        email: "test@example.com",
-        name: "Test User",
+        email: "john.darlucio022@gmail.com",
+        name: "John Darlucio",
         role: "user",
         isVerified: true,
       })

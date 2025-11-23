@@ -18,6 +18,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { apiService } from "@/services/api";
+import { useState } from "react";
 
 const formSchema = z.object({
     firstName: z.string().min(2).max(255),
@@ -70,6 +73,8 @@ export const ContactSection = ({
     onSubmit,
     className = ""
 }: ContactSectionProps) => {
+    const [ isSubmitting, setIsSubmitting ] = useState(false);
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -81,18 +86,34 @@ export const ContactSection = ({
         },
     });
 
-    function handleSubmit(values: z.infer<typeof formSchema>) {
+    async function handleSubmit(values: z.infer<typeof formSchema>) {
         if (onSubmit) {
             onSubmit(values);
-        } else {
-            // Default behavior - open email client
-            const mailToLink = `mailto:crossinghomedepot@gmail.com?subject=${encodeURIComponent(
-                values.subject
-            )}&body=${encodeURIComponent(
-                `Hello, I am ${values.firstName} ${values.lastName}. My email is ${values.email}.\n\n${values.message}`
-            )}`;
+            return;
+        }
 
-            window.location.href = mailToLink;
+        setIsSubmitting(true);
+        try {
+            const response = await apiService.submitContactForm(values) as { success: boolean; message?: string };
+
+            if (response.success) {
+                toast.success("Message sent successfully!", {
+                    description: response.message || "We'll get back to you soon!",
+                });
+                form.reset();
+            } else {
+                toast.error("Failed to send message", {
+                    description: response.message || "Please try again later.",
+                });
+            }
+        } catch (error) {
+            console.error("Error submitting contact form:", error);
+            const errorMessage = error instanceof Error ? error.message : "Failed to send message. Please try again later.";
+            toast.error("Failed to send message", {
+                description: errorMessage,
+            });
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -212,7 +233,9 @@ export const ContactSection = ({
                                     )}
                                 />
 
-                                <Button className="mt-4 w-full">{submitButtonText}</Button>
+                                <Button type="submit" className="mt-4 w-full" disabled={isSubmitting}>
+                                    {isSubmitting ? "Sending..." : submitButtonText}
+                                </Button>
                             </form>
                         </Form>
                     </CardContent>

@@ -583,6 +583,29 @@ export default function ProductsScreen() {
                                     )}
                                 </View>
 
+                                {/* Product Images Gallery */}
+                                {selectedProduct.images && selectedProduct.images.length > 0 && (
+                                    <View style={styles.modalImagesGallery}>
+                                        <Text style={styles.modalImagesTitle}>Product Images</Text>
+                                        <ScrollView
+                                            horizontal
+                                            showsHorizontalScrollIndicator={false}
+                                            style={styles.modalImagesScroll}
+                                            contentContainerStyle={styles.modalImagesContent}
+                                        >
+                                            {selectedProduct.images.map((image, index) => (
+                                                <View key={index} style={styles.modalGalleryImageContainer}>
+                                                    <Image
+                                                        source={{ uri: getProductImageUrl(image) }}
+                                                        style={styles.modalGalleryImage}
+                                                        resizeMode="cover"
+                                                    />
+                                                </View>
+                                            ))}
+                                        </ScrollView>
+                                    </View>
+                                )}
+
                                 <View style={styles.modalInfo}>
                                     <Text style={styles.modalProductName}>{selectedProduct.name}</Text>
                                     <Text style={styles.modalProductDescription}>{selectedProduct.description}</Text>
@@ -1565,6 +1588,33 @@ const styles = StyleSheet.create({
     },
     modalPlaceholderText: {
         fontSize: 64,
+    },
+    modalImagesGallery: {
+        marginBottom: 20,
+    },
+    modalImagesTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1f2937',
+        marginBottom: 12,
+    },
+    modalImagesScroll: {
+        marginHorizontal: -20,
+    },
+    modalImagesContent: {
+        paddingHorizontal: 20,
+        gap: 12,
+    },
+    modalGalleryImageContainer: {
+        width: 150,
+        height: 150,
+        borderRadius: 12,
+        overflow: 'hidden',
+        marginRight: 12,
+    },
+    modalGalleryImage: {
+        width: '100%',
+        height: '100%',
     },
     modalInfo: {
         gap: 16,

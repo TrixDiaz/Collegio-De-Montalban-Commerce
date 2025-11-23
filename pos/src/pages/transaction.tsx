@@ -51,8 +51,6 @@ const Transaction = () => {
     const [ deleteItemId, setDeleteItemId ] = useState<string | null>(null);
     const [ paymentMethod, setPaymentMethod ] = useState<'cash' | 'cod' | 'gcash' | 'maya'>('cash');
     const [ isProcessing, setIsProcessing ] = useState(false);
-    const [ paymentSourceId, setPaymentSourceId ] = useState<string | null>(null);
-    const [ checkoutUrl, setCheckoutUrl ] = useState<string | null>(null);
     const [ showKeyboard, setShowKeyboard ] = useState(false);
     const [ categories, setCategories ] = useState<string[]>([]);
     const [ brands, setBrands ] = useState<string[]>([]);
@@ -233,32 +231,6 @@ const Transaction = () => {
         return true;
     };
 
-    const handleDigitalPayment = async (method: 'gcash' | 'maya') => {
-        try {
-            const total = calculateTotal();
-
-            // Create payment source with PayMongo
-            const response = await apiService.createPaymentSource(
-                total,
-                method === 'gcash' ? 'gcash' : 'paymaya'
-            );
-
-            if (response.success && response.data) {
-                const source = response.data.attributes;
-                setPaymentSourceId(response.data.id);
-                setCheckoutUrl(source.redirect?.checkout_url);
-
-                // Open payment page in a new window/tab
-                if (source.redirect?.checkout_url) {
-                    window.open(source.redirect.checkout_url, '_blank');
-                    toast.info(`${method.toUpperCase()} payment initiated. Complete payment in the opened window.`);
-                }
-            }
-        } catch (error: any) {
-            console.error('Error creating payment source:', error);
-            toast.error(error?.message || 'Failed to initiate payment');
-        }
-    };
 
     const handleCompleteTransaction = async () => {
         if (orderItems.length === 0) {
@@ -268,12 +240,6 @@ const Transaction = () => {
 
         if (paymentMethod === 'cash' && !isPaymentSufficient()) {
             toast.error("Payment amount is insufficient");
-            return;
-        }
-
-        // For digital payments (GCash, Maya), initiate payment first
-        if (paymentMethod === 'gcash' || paymentMethod === 'maya') {
-            await handleDigitalPayment(paymentMethod);
             return;
         }
 
@@ -316,75 +282,17 @@ const Transaction = () => {
                 setPromoCode("");
                 setAppliedPromo(null);
                 setPromoDiscount(0);
-                setPaymentSourceId(null);
-                setCheckoutUrl(null);
                 // Refresh products to update stock
                 await fetchProducts();
+
+                // Redirect to dashboard after a short delay
+                setTimeout(() => {
+                    navigate("/dashboard");
+                }, 1500);
             }
         } catch (error: any) {
             console.error("Error completing transaction:", error);
             toast.error(error?.message || "Failed to complete transaction");
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-
-    const confirmDigitalPayment = async () => {
-        if (!paymentSourceId) {
-            toast.error("No payment source found");
-            return;
-        }
-
-        try {
-            setIsProcessing(true);
-
-            // Check payment status
-            const statusResponse = await apiService.getPaymentSourceStatus(paymentSourceId);
-
-            if (statusResponse.success && statusResponse.data.attributes.status === 'chargeable') {
-                // Payment successful, create the sale
-                const saleData = {
-                    items: orderItems,
-                    subtotal: calculateSubtotal(),
-                    tax: calculateTax(),
-                    discount: promoDiscount,
-                    total: calculateTotal(),
-                    paymentMethod: paymentMethod,
-                    promoCode: appliedPromo?.code || null,
-                };
-
-                const response = await apiService.createSale(saleData);
-
-                if (response.success) {
-                    // Increment promo code usage if applied
-                    if (appliedPromo) {
-                        try {
-                            await apiService.incrementPromoCodeUsage(appliedPromo.code);
-                        } catch (promoError) {
-                            console.error("Error incrementing promo code:", promoError);
-                        }
-                    }
-
-                    toast.success(`Payment confirmed! Order #${response.order.orderNumber}`);
-
-                    setOrderItems([]);
-                    setPaymentMethod('cash');
-                    setCustomerPayment("");
-                    setShowNumericKeyboard(false);
-                    setPromoCode("");
-                    setAppliedPromo(null);
-                    setPromoDiscount(0);
-                    setPaymentSourceId(null);
-                    setCheckoutUrl(null);
-                    // Refresh products to update stock
-                    await fetchProducts();
-                }
-            } else {
-                toast.error("Payment not completed yet. Please complete payment first.");
-            }
-        } catch (error: any) {
-            console.error("Error confirming payment:", error);
-            toast.error(error?.message || "Failed to confirm payment");
         } finally {
             setIsProcessing(false);
         }
@@ -742,8 +650,6 @@ const Transaction = () => {
                                                 // Reset customer payment when changing method
                                                 setCustomerPayment("");
                                                 setShowNumericKeyboard(false);
-                                                setPaymentSourceId(null);
-                                                setCheckoutUrl(null);
                                             }}>
                                                 <SelectTrigger className="h-9">
                                                     <SelectValue />
@@ -751,8 +657,8 @@ const Transaction = () => {
                                                 <SelectContent>
                                                     <SelectItem value="cash">Cash</SelectItem>
                                                     <SelectItem value="cod">Cash on Delivery</SelectItem>
-                                                    <SelectItem value="gcash">GCash (PayMongo)</SelectItem>
-                                                    <SelectItem value="maya">Maya (PayMongo)</SelectItem>
+                                                    <SelectItem value="gcash">GCash</SelectItem>
+                                                    <SelectItem value="maya">Maya</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -796,55 +702,17 @@ const Transaction = () => {
                                             </div>
                                         )}
 
-                                        {/* Digital Payment Status */}
-                                        {(paymentMethod === 'gcash' || paymentMethod === 'maya') && checkoutUrl && (
-                                            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md space-y-2">
-                                                <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                                                    Payment initiated
-                                                </p>
-                                                <p className="text-xs text-blue-600 dark:text-blue-500">
-                                                    Complete payment in the opened window, then click "Confirm Payment" below.
-                                                </p>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="w-full"
-                                                    onClick={() => window.open(checkoutUrl, '_blank')}
-                                                >
-                                                    Open Payment Window Again
-                                                </Button>
-                                            </div>
-                                        )}
-
                                         <Button
                                             className="w-full"
-                                            onClick={checkoutUrl ? confirmDigitalPayment : handleCompleteTransaction}
+                                            onClick={handleCompleteTransaction}
                                             disabled={isProcessing || (paymentMethod === 'cash' && !isPaymentSufficient())}
                                         >
                                             <CreditCard className="h-4 w-4 mr-2" />
                                             {isProcessing
                                                 ? "Processing..."
-                                                : checkoutUrl
-                                                    ? "Confirm Payment"
-                                                    : (paymentMethod === 'gcash' || paymentMethod === 'maya')
-                                                        ? `Pay with ${paymentMethod.toUpperCase()}`
-                                                        : "Complete Transaction"
+                                                : "Complete Transaction"
                                             }
                                         </Button>
-
-                                        {checkoutUrl && (
-                                            <Button
-                                                variant="outline"
-                                                className="w-full"
-                                                onClick={() => {
-                                                    setPaymentSourceId(null);
-                                                    setCheckoutUrl(null);
-                                                    toast.info("Payment cancelled");
-                                                }}
-                                            >
-                                                Cancel Payment
-                                            </Button>
-                                        )}
                                     </div>
                                 )}
                             </CardContent>

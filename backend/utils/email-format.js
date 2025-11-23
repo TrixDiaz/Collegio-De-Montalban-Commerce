@@ -92,4 +92,37 @@ const sendOtpEmailHtml = (name, otp) => {
   return getBaseHTML(content, "Email Verification");
 };
 
-export {sendOtpEmailHtml};
+const sendContactEmailHtml = (firstName, lastName, email, subject, message) => {
+  const content = `
+    <!-- Header -->
+    <div class="bg-dark text-center py-32 rounded-top">
+      <h1 class="fs-xl fw-medium text-white">New Contact Form Submission</h1>
+    </div>
+
+    <!-- Body -->
+    <div class="p-24">
+      <div class="mb-24">
+        <h2 class="fs-lg fw-medium text-dark mb-16">Contact Information</h2>
+        <p class="text-muted leading mb-8"><strong>Name:</strong> ${firstName} ${lastName}</p>
+        <p class="text-muted leading mb-8"><strong>Email:</strong> ${email}</p>
+        <p class="text-muted leading mb-16"><strong>Subject:</strong> ${subject}</p>
+      </div>
+
+      <div class="mb-24">
+        <h2 class="fs-lg fw-medium text-dark mb-16">Message</h2>
+        <div class="bg-light border rounded p-16">
+          <p class="text-muted leading" style="white-space: pre-wrap;">${message}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="bg-light border-top text-center p-16">
+      <p class="text-muted fs-xs">This message was sent from the contact form on your website.</p>
+    </div>
+  `;
+
+  return getBaseHTML(content, "Contact Form Submission");
+};
+
+export {sendOtpEmailHtml, sendContactEmailHtml};
