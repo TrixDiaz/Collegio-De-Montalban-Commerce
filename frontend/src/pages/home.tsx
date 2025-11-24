@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { FeaturedSection } from "@/components/sections/featured-section";
 import { CarouselSection } from "@/components/sections/carousel-section";
 import { HeroSection } from "@/components/sections/hero-sections";
-import { apiService } from "@/services/api";
+import { apiService, API_BASE_URL } from "@/services/api";
 
 interface ProductType {
     id: string;
@@ -83,7 +83,7 @@ const Home = () => {
                 const decodedRefresh = decodeURIComponent(refresh);
 
                 // Get user data
-                const response = await fetch('http://localhost:5000/api/v1/auth/me', {
+                const response = await fetch(`${API_BASE_URL}/auth/me`, {
                     headers: {
                         'Authorization': `Bearer ${decodedToken}`,
                         'Content-Type': 'application/json',

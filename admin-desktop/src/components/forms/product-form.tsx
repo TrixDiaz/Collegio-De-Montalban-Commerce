@@ -164,6 +164,7 @@ export const ProductForm = ({
 
             // Populate existing images for edit mode
             if (product.images && product.images.length > 0) {
+                const BACKEND_BASE_URL = 'https://tile-depot-backend-production.up.railway.app';
                 const existingImageUrls = product.images.map(imagePath => {
                     // Convert relative path to full URL
                     if (imagePath.startsWith('http')) return imagePath;
@@ -173,13 +174,14 @@ export const ProductForm = ({
                     if (imagePath.startsWith('uploads/')) {
                         cleanPath = imagePath.substring(8); // Remove 'uploads/' prefix
                     }
-                    return `http://localhost:5000/uploads/${cleanPath}`;
+                    return `${BACKEND_BASE_URL}/uploads/${cleanPath}`;
                 });
                 setPreviewImages(existingImageUrls);
             }
 
             // Populate existing thumbnail for edit mode
             if (product.thumbnail) {
+                const BACKEND_BASE_URL = 'https://tile-depot-backend-production.up.railway.app';
                 let thumbnailUrl;
                 if (product.thumbnail.startsWith('http')) {
                     thumbnailUrl = product.thumbnail;
@@ -189,7 +191,7 @@ export const ProductForm = ({
                     if (product.thumbnail.startsWith('uploads/')) {
                         cleanPath = product.thumbnail.substring(8); // Remove 'uploads/' prefix
                     }
-                    thumbnailUrl = `http://localhost:5000/uploads/${cleanPath}`;
+                    thumbnailUrl = `${BACKEND_BASE_URL}/uploads/${cleanPath}`;
                 }
                 setPreviewThumbnail(thumbnailUrl);
             }

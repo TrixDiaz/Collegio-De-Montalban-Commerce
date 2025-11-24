@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { getImageUrl } from "@/lib/utils";
 import {
     Table,
     TableBody,
@@ -518,7 +519,7 @@ const AccountPage = () => {
                                                                     {sale.items.slice(0, 3).map((item, index) => (
                                                                         <div key={index} className="w-8 h-8 rounded-full border-2 border-background overflow-hidden">
                                                                             <img
-                                                                                src={`http://localhost:5000/${item.thumbnail}`}
+                                                                                src={getImageUrl(item.thumbnail)}
                                                                                 alt={item.name}
                                                                                 className="w-full h-full object-cover"
                                                                             />
@@ -584,7 +585,7 @@ const AccountPage = () => {
                                                                                     <div key={index} className="flex items-center gap-3 p-3 bg-background rounded-lg">
                                                                                         <div className="w-12 h-12 flex-shrink-0">
                                                                                             <img
-                                                                                                src={`http://localhost:5000/${item.thumbnail}`}
+                                                                                                src={getImageUrl(item.thumbnail)}
                                                                                                 alt={item.name}
                                                                                                 className="w-full h-full object-cover rounded cursor-pointer"
                                                                                                 onClick={() => navigate(`/product/${item.id}`)}
@@ -793,7 +794,7 @@ const AccountPage = () => {
                                             <div className="flex items-center gap-4">
                                                 <div className="w-16 h-16 flex-shrink-0">
                                                     <img
-                                                        src={`http://localhost:5000/${item.productThumbnail}`}
+                                                        src={getImageUrl(item.productThumbnail)}
                                                         alt={item.productName}
                                                         className="w-full h-full object-cover rounded"
                                                     />

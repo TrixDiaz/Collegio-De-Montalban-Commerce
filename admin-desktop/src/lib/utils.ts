@@ -1,6 +1,9 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+// Backend base URL for serving static files
+const BACKEND_BASE_URL = 'https://tile-depot-backend-production.up.railway.app';
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -22,5 +25,5 @@ export function getImageUrl(imagePath: string) {
     cleanPath = normalizedPath.substring(8); // Remove "uploads/" prefix
   }
 
-  return `http://localhost:5000/uploads/${cleanPath}`;
+  return `${BACKEND_BASE_URL}/uploads/${cleanPath}`;
 }

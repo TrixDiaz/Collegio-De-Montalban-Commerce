@@ -1,6 +1,20 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+// Backend base URL for serving static files
+// Use environment variable or default to production URL
+const getBackendBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl) {
+    // Remove /api/v1 if present to get base URL
+    return envUrl.replace(/\/api\/v1\/?$/, '');
+  }
+  // Default to production backend URL
+  return 'https://tile-depot-backend-production.up.railway.app';
+};
+
+const BACKEND_BASE_URL = getBackendBaseUrl();
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -22,5 +36,5 @@ export function getImageUrl(imagePath: string) {
     cleanPath = normalizedPath.substring(8); // Remove "uploads/" prefix
   }
 
-  return `http://localhost:5000/uploads/${cleanPath}`;
+  return `${BACKEND_BASE_URL}/uploads/${cleanPath}`;
 }

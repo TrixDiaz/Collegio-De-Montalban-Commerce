@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Star, Send } from "lucide-react";
 import { apiService } from "@/services/api";
 import { toast } from "sonner";
+import { getImageUrl } from "@/lib/utils";
 
 interface ReviewFormProps {
     productId: string;
@@ -63,7 +64,7 @@ export const ReviewForm = ({
             <div className="flex items-center gap-4 mb-6">
                 <div className="w-16 h-16 flex-shrink-0">
                     <img
-                        src={`http://localhost:5000/${productThumbnail}`}
+                        src={getImageUrl(productThumbnail)}
                         alt={productName}
                         className="w-full h-full object-cover rounded"
                     />

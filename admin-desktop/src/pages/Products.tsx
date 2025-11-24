@@ -109,8 +109,9 @@ export const Products = () => {
       cleanPath = normalizedPath.substring(8); // Remove "uploads/" prefix
     }
 
-    // Ensure no double slashes in the final URL
-    const finalUrl = `http://localhost:5000/uploads/${cleanPath}`.replace(/\/+/g, '/').replace('http:/', 'http://');
+    // Use production backend URL
+    const BACKEND_BASE_URL = 'https://tile-depot-backend-production.up.railway.app';
+    const finalUrl = `${BACKEND_BASE_URL}/uploads/${cleanPath}`.replace(/\/+/g, '/').replace('https:/', 'https://');
     console.log('Image URL:', finalUrl, 'Original path:', imagePath);
     return finalUrl;
   }, []);
