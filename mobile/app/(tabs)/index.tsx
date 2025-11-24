@@ -119,12 +119,6 @@ export default function DashboardScreen() {
             <Text style={styles.userName}>{user?.name || 'Admin'}</Text>
           </View>
           <View style={styles.headerButtons}>
-            <TouchableOpacity
-              style={styles.settingsButton}
-              onPress={() => router.push('/server-config')}
-            >
-              <Text style={styles.settingsText}>⚙️</Text>
-            </TouchableOpacity>
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>

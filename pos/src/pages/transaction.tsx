@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'https://tile-depot-backend-production.up.railway.app';
 
 const Transaction = () => {
     const { user } = useAuth();
@@ -300,7 +300,20 @@ const Transaction = () => {
 
     const getProductImageUrl = (thumbnail?: string) => {
         if (!thumbnail) return null;
-        return `${API_BASE_URL}/${thumbnail}`;
+        if (thumbnail.startsWith('http')) return thumbnail;
+        
+        // Normalize path separators
+        const normalizedPath = thumbnail.replace(/\\/g, '/');
+        
+        // Remove uploads/ prefix if it exists, since we'll add it back
+        let cleanPath = normalizedPath;
+        if (normalizedPath.startsWith('/uploads/')) {
+            cleanPath = normalizedPath.substring(9); // Remove "/uploads/" prefix
+        } else if (normalizedPath.startsWith('uploads/')) {
+            cleanPath = normalizedPath.substring(8); // Remove "uploads/" prefix
+        }
+        
+        return `${API_BASE_URL}/uploads/${cleanPath}`;
     };
 
     const handleKeyPress = (key: string) => {

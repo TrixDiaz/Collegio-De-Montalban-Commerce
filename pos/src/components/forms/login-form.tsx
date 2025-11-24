@@ -33,7 +33,7 @@ const LoginForm = ({
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
         setIsCheckingEmail(true)
         try {
-            const response = await apiService.resendOtp(data.email) as { success: boolean; message: string }
+            const response = await apiService.generateOtp(data.email) as { success: boolean; message: string }
             if (response.success) {
                 setUserEmail(data.email)
                 setIsOtpForm(true)
@@ -45,10 +45,21 @@ const LoginForm = ({
         } catch (error: any) {
             console.error(error)
             if (error.message?.includes("409") || error.message?.includes("already exists")) {
-                setUserEmail(data.email)
-                setIsCheckingEmail(false)
-                setIsOtpForm(true)
-                toast.info(error.message || "OTP already sent")
+                // If OTP already exists, try resending it
+                try {
+                    const resendResponse = await apiService.resendOtp(data.email) as { success: boolean; message: string }
+                    if (resendResponse.success) {
+                        setUserEmail(data.email)
+                        setIsOtpForm(true)
+                        toast.success(resendResponse.message || "OTP sent")
+                    } else {
+                        toast.error(resendResponse.message || "An unexpected error occurred")
+                        setIsCheckingEmail(false)
+                    }
+                } catch (resendError: any) {
+                    toast.error(resendError.message || "An unexpected error occurred")
+                    setIsCheckingEmail(false)
+                }
             } else {
                 toast.error(error.message || "An unexpected error occurred")
                 setIsCheckingEmail(false)

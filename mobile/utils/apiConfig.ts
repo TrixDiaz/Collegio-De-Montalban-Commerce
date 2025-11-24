@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL_KEY = 'api_base_url';
-const DEFAULT_API_URL = 'http://192.168.1.21:5000/api/v1';
+const DEFAULT_API_URL = 'https://tile-depot-backend-production.up.railway.app/api/v1';
 
 export const apiConfig = {
     // Get the stored API URL or return empty string

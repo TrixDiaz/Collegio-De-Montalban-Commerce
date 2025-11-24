@@ -42,7 +42,6 @@ export default function NetworkStatus({ onRetry }: NetworkStatusProps) {
                 <View style={styles.checklist}>
                     <Text style={styles.checkItem}>• Your internet connection</Text>
                     <Text style={styles.checkItem}>• Backend server is running</Text>
-                    <Text style={styles.checkItem}>• Correct server URL in config</Text>
                 </View>
                 <TouchableOpacity
                     style={[ styles.retryButton, isChecking && styles.retryButtonDisabled ]}

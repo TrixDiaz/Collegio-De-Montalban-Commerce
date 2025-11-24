@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+const API_BASE_URL = 'https://tile-depot-backend-production.up.railway.app/api/v1';
 
 export interface User {
     id: string;
