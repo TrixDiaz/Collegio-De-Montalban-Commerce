@@ -99,8 +99,10 @@ const LoginForm = ({
     }
 
     const handleGoogleLogin = () => {
-        // Redirect to backend OAuth endpoint
-        window.location.href = 'https://tile-depot-frontend.vercel.app/api/v1/oauth/google';
+        // Redirect to backend OAuth initiation endpoint (not callback)
+        const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+        const oauthUrl = `${backendUrl}/api/v1/oauth/google`;
+        window.location.href = oauthUrl;
     }
 
     const formSchema = z.object({

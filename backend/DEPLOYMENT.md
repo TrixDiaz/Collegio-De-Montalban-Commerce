@@ -45,6 +45,7 @@ GITHUB_CLIENT_ID=your-github-client-id
 GITHUB_CLIENT_SECRET=your-github-client-secret
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
+BACKEND_URL=https://your-backend-domain.com  # Required for OAuth redirects
 
 # Payments (if using)
 PAYMONGO_PUBLIC_KEY=your-paymongo-public-key
@@ -277,6 +278,7 @@ Consider migrating to cloud storage for production:
 | `JWT_SECRET`         | ✅       | -         | Strong secret key                        |
 | `JWT_REFRESH_SECRET` | ✅       | -         | Strong secret key                        |
 | `FRONTEND_URL`       | ✅       | -         | Your frontend domain                     |
+| `BACKEND_URL`        | ⚠️       | -         | Your backend domain (required for OAuth) |
 | `RESEND_API_KEY`     | ✅       | -         | Resend API key for email service         |
 | `MAIL_FROM_EMAIL`    | ✅       | -         | Email address to send from               |
 | `MAIL_FROM_NAME`     | ❌       | -         | Display name for sender (optional)       |
@@ -298,6 +300,26 @@ pnpm drizzle-kit migrate
 pnpm drizzle-kit generate
 ```
 
+## 🔐 OAuth Configuration
+
+If you're using Google OAuth, see the detailed setup guide:
+
+📖 **[Google OAuth Setup Guide](./OAUTH_SETUP.md)**
+
+**Quick Reference for Google OAuth:**
+
+1. **Google Console Configuration:**
+   - Authorized JavaScript Origins: `https://your-frontend-domain.com`
+   - Authorized Redirect URIs: `https://your-backend-domain.com/api/v1/oauth/google/callback`
+
+2. **Required Environment Variables:**
+   ```env
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   BACKEND_URL=https://your-backend-domain.com
+   FRONTEND_URL=https://your-frontend-domain.com
+   ```
+
 ## ✅ Summary
 
 **For Deployment, You Need:**
@@ -305,8 +327,9 @@ pnpm drizzle-kit generate
 1. ✅ Set all required environment variables in your platform
 2. ✅ Set `NODE_ENV=production`
 3. ✅ Run database migrations
-4. ❌ **DON'T set SERVER_HOST** (leave it unset - server handles it)
-5. ❌ **DON'T set PORT** (platform provides it automatically)
-6. ❌ **DON'T manually fork** (platform handles process management)
+4. ✅ Set `BACKEND_URL` if using OAuth (required for OAuth redirects)
+5. ❌ **DON'T set SERVER_HOST** (leave it unset - server handles it)
+6. ❌ **DON'T set PORT** (platform provides it automatically)
+7. ❌ **DON'T manually fork** (platform handles process management)
 
 The server is now configured to work seamlessly with modern deployment platforms! 🎉
