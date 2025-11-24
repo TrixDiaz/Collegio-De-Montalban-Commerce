@@ -1,6 +1,6 @@
 // Global API Configuration
 // This will be dynamically set by the user in the app
-let GLOBAL_API_BASE_URL = 'http://192.168.1.23:5000/api/v1';
+let GLOBAL_API_BASE_URL = 'https://tile-depot-backend.onrender.com/api/v1';
 
 // Setter for the API URL (called after user configures it)
 export const setGlobalApiUrl = (url: string) => {
